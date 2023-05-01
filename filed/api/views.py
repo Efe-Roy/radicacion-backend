@@ -451,9 +451,9 @@ class ResolutionView(APIView):
 
             # ============================= send email =====================================
             email = filed.email
-            subject= 'Se ha creado una Ley de Procedimiento'
+            subject= 'Se genero tu resolusión'
             from_email= settings.EMAIL_HOST_USER
-            html_template = 'account/act_procedure_email.html'
+            html_template = 'account/aresolution_email.html'
             
             html_message = render_to_string(html_template, {
                 'radicado' : filed.file_name
