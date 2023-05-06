@@ -2,17 +2,19 @@ from django.urls import path
 from .views import (
     FileDetailView, FileListView, verifyDocCreateView, 
     verifyDocUpdateView, verifyDocDeleteView, AssignAgentView,
-    AssignAgentRetrieveView, FileTypeView,
+    AssignAgentRetrieveView, FileTypeView, AllFileView,
 
     UnderReview, ReviewView, ObservationView, NotifiedView,
     DocumentView, ActProcedureView, PersonalNotifiedView,
     PaymentView, PaymentDocView, ResolutionView, ResolutionNotificationView,
     TrackDetailView, FileDetailViewII, FileNumView, FileSearchView,
-    FileNumSearchView, ResolutionNumView, CompletedStatus
+    FileNumSearchView, ResolutionNumView, CompletedStatus, LoggerView
 )
 
 urlpatterns = [
     path('files', FileListView.as_view(), name='file-list'),
+    path('all-files', AllFileView.as_view()),
+    path('logger-all', LoggerView.as_view()),
     # path('file-search/', FileSearchView.as_view(), name='file-list'),
     path('file-search/<pk>', FileNumSearchView.as_view()),
     path('files/<pk>/', FileDetailView.as_view(), name='file-detail'),

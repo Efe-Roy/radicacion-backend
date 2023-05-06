@@ -160,3 +160,8 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class LoggerAll(models.Model):
+    msg = models.CharField(max_length=500)
+    createdAt = models.DateField(auto_now_add=True)

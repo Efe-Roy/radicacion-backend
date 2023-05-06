@@ -12,15 +12,15 @@ from rest_framework.generics import (
     ListCreateAPIView
 )
 from .serializers import ( 
-    FileSerializer, FileCreateSerializer, AssignAgentSerializer, 
+    FileSerializer, FileCreateSerializer, AssignAgentSerializer, AllFileSerializer,
     AssignFileAgentSerializer, VeriyDocSerializer, CompleteSerializer,
-    ObservationSerializer, ReviewSerializer, DocumentSerializer,
+    ObservationSerializer, ReviewSerializer, DocumentSerializer, LoggerSerializer,
     ActProcedureSerializer, PaymentDocSerializer, PaymentSerializer,
     ResolutionSerializer, ResolutionNotificationSerializer, UnderReviewSerializer,
     NotifiedSerializer, PersonalNotifiedSerializer, FileTypeSerializer, AllTrackSerializer
 )
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from filed.models import File, Agent, Category, VeriyDoc, FileType
+from filed.models import File, Agent, Category, VeriyDoc, FileType, LoggerAll
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.status import (
@@ -32,6 +32,11 @@ from django.contrib.auth import get_user_model
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 
+import datetime
+# import the logging library
+import logging
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
 
 
 class FileNumView(APIView):
@@ -78,13 +83,31 @@ class FileSearchView(ListAPIView):
     serializer_class = FileSerializer
     filter_backends = [SearchFilter]
     search_fields = ['=file_name']
+
+class AllFileView(APIView):
+    def get(self, request, format=None):
+        logger.warning('Homepage was accessed at '+str(datetime.datetime.now())+' hours!')
+
+        allFiles = File.objects.all()
+        serializerAllFile = AllFileSerializer(allFiles, many=True)
+        return Response(serializerAllFile.data)
     
+class LoggerView(APIView):
+    def get(self, request, format=None):
+        newDate = datetime.date.today() + datetime.timedelta(days=4)
+        print("newDate", newDate)
+
+        loggerFiles = LoggerAll.objects.all()
+        serializerAllFile = LoggerSerializer(loggerFiles, many=True)
+        return Response(serializerAllFile.data)
+
+
 class FileListView(APIView):
     """
     List all snippets, or create a new snippet.
     """
     def get(self, request, format=None):
-        # files = File.objects.all()
+        # allFiles = File.objects.all()
         unassigned_files = File.objects.filter(agent__isnull=True)
 
         user = self.request.user
@@ -95,12 +118,12 @@ class FileListView(APIView):
             queryset = File.objects.filter(agent__isnull=False)
             queryset = queryset.filter(agent__user=user)
 
+        # serializerAllFile = FileSerializer(allFiles, many=True)
         serializerFile = FileSerializer(queryset, many=True)
         unassignedFile = FileSerializer(unassigned_files, many=True)
 
 
         # query last value of file unique number
-        # get_file = File.objects.filter(organisation=2)
         get_file = File.objects.all()
         if get_file.exists():
             print("Has Data")
@@ -126,6 +149,7 @@ class FileListView(APIView):
             "user_id": user.id,
             "user_profile": x_id,
             "fileNum": d,
+            # "all_files": serializerAllFile.data,
             "files": serializerFile.data,
             "unassigned_files": unassignedFile.data
         })
@@ -134,6 +158,7 @@ class FileListView(APIView):
         serializer = FileCreateSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
+            LoggerAll.objects.create(msg='Se creó un nuevo archivo')
             return Response(serializer.data, status= HTTP_201_CREATED)
         return Response(serializer.errors, status= HTTP_400_BAD_REQUEST)
 
@@ -194,6 +219,26 @@ class FileDetailView(APIView):
         serializer = FileCreateSerializer(filed, data=request.data)
         if serializer.is_valid():
             serializer.save()
+
+            LoggerAll.objects.create(msg='Se actualizó un archivo con el número ' + request.data["file_name"])
+
+            # print("ffff data", request.data['State_type'])
+            if request.data['State_type'] == 1:
+                print("Activo")
+
+                # ====== send email notification ===== #
+                email = request.data['email']
+                subject= 'seguimiento del estado'
+                from_email= settings.EMAIL_HOST_USER
+                html_template = 'account/active_file_email.html'
+                
+                html_message = render_to_string(html_template, {
+                    'radicado' : filed.file_name
+                })
+
+                message = EmailMessage(subject, html_message, from_email, [email])
+                message.content_subtype = 'html' # this is required because there is no plain text email version
+                message.send()
             return Response(serializer.data)
         return Response(serializer.errors, status= HTTP_400_BAD_REQUEST)
 
@@ -291,6 +336,8 @@ class AssignAgentView(APIView):
             u = Agent.objects.get(id = request.data["agent"])
             # print("u", u.user.email)
             
+            LoggerAll.objects.create(msg='Se ha asignado un archivo con este número '+ filed.file_name )
+
             # ====== send email notification ===== #
             email = u.user.email
             subject= 'Se le ha asignado un tramite'
