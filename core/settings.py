@@ -1,6 +1,5 @@
 from pathlib import Path
 import os
-import dj_database_url
 import environ
 
 # Initialise environment variables
@@ -49,8 +48,8 @@ INSTALLED_APPS = [
     'rest_auth',
     "corsheaders",
 
-    # 'drf_yasg',
-    # 'django_filters',
+    # Background task
+    'background_task',
 ]
 
 MIDDLEWARE = [
@@ -88,18 +87,6 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
-# DATABASE_URL = "postgresql://postgres:YoHI7XoGpyVidDV0aRTE@containers-us-west-68.railway.app:7970/railway"
-# DATABASES = {
-#     'default': dj_database_url.config(default=DATABASE_URL, conn_max_age=1800),
-# }
 
 
 DATABASES = {

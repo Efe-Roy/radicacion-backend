@@ -15,6 +15,7 @@ urlpatterns = [
     path('files', FileListView.as_view(), name='file-list'),
     path('all-files', AllFileView.as_view()),
     path('logger-all', LoggerView.as_view()),
+
     # path('file-search/', FileSearchView.as_view(), name='file-list'),
     path('file-search/<pk>', FileNumSearchView.as_view()),
     path('files/<pk>/', FileDetailView.as_view(), name='file-detail'),

@@ -5,6 +5,7 @@ from django.http import Http404
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from datetime import datetime
+import datetime
 from django.core.mail import send_mail
 from rest_framework.generics import (
     ListAPIView, RetrieveAPIView, CreateAPIView,
@@ -31,12 +32,18 @@ from rest_framework.filters import SearchFilter
 from django.contrib.auth import get_user_model
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
+from background_task import background
 
-import datetime
 # import the logging library
 import logging
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
+
+
+import schedule
+import time
+
+from datetime import timedelta
 
 
 class FileNumView(APIView):
@@ -182,6 +189,7 @@ class FileNumSearchView(APIView):
             "filesTrack" : Trackserializer.data
             })
 
+
 class FileDetailView(APIView):
     """
     Retrieve, update or delete a snippet instance.
@@ -313,12 +321,6 @@ class AssignAgentRetrieveView(APIView):
 
         return Response( allAgent.data)
 
-
-# class AssignAgentView(UpdateAPIView):
-#     permission_classes = (AllowAny, )
-#     serializer_class = AssignFileAgentSerializer
-#     queryset = File.objects.all()
-
 class AssignAgentView(APIView):
     def get_object(self, pk):
         try:
@@ -374,11 +376,6 @@ class ReviewView(UpdateAPIView):
     serializer_class = ReviewSerializer
     queryset = File.objects.all()
 
-# class ObservationView(UpdateAPIView):
-#     permission_classes = (AllowAny, )
-#     serializer_class = ObservationSerializer
-#     queryset = File.objects.all()
-
 class ObservationView(APIView):
     def get_object(self, pk):
         try:
@@ -421,11 +418,6 @@ class DocumentView(UpdateAPIView):
     serializer_class = DocumentSerializer
     queryset = File.objects.all()
 
-# class ActProcedureView(UpdateAPIView):
-#     permission_classes = (AllowAny, )
-#     serializer_class = ActProcedureSerializer
-#     queryset = File.objects.all()
-
 class ActProcedureView(APIView):
     def get_object(self, pk):
         try:
@@ -460,7 +452,6 @@ class ActProcedureView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status= HTTP_400_BAD_REQUEST)
 
-
 class PersonalNotifiedView(UpdateAPIView):
     permission_classes = (AllowAny, )
     serializer_class = PersonalNotifiedSerializer
@@ -475,11 +466,6 @@ class PaymentDocView(UpdateAPIView):
     permission_classes = (AllowAny, )
     serializer_class = PaymentDocSerializer
     queryset = File.objects.all()
-
-# class ResolutionView(UpdateAPIView):
-#     permission_classes = (AllowAny, )
-#     serializer_class = ResolutionSerializer
-#     queryset = File.objects.all()
 
 class ResolutionView(APIView):
     def get_object(self, pk):
