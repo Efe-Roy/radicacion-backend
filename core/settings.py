@@ -21,7 +21,7 @@ SECRET_KEY = "django-insecure-a&3+0t=32fxqhxb=p)w)1a5+$te$qc6zt52yt28@5ss9h-t*_!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['159.223.112.223','*']
+ALLOWED_HOSTS = ['159.223.112.223','68.183.96.49', '*']
 
 
 # Application definition
@@ -89,29 +89,27 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-# if DEBUG:
-#     DATABASES = {
-#         'default': {
-#             'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#             'NAME': env('DATABASE_NAME'), 
-#             'USER': env('DATABASE_USER'),
-#             'PASSWORD': env('DATABASE_PASS'),
-#             'HOST': env('DATABASE_HOST'), 
-#             'PORT': env('DATABASE_PORT'),
-#         }
-#     }
-
-# else:
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'myprojdb', 
-        'USER': 'myprojuser',
-        'PASSWORD': 'postgres',
-        'HOST': 'localhost', 
-        'PORT': '5432',
+        'NAME': env('DATABASE_NAME'), 
+        'USER': env('DATABASE_USER'),
+        'PASSWORD': env('DATABASE_PASS'),
+        'HOST': env('DATABASE_HOST'), 
+        'PORT': env('DATABASE_PORT'),
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': 'myprojdb', 
+#         'USER': 'myprojuser',
+#         'PASSWORD': 'postgres',
+#         'HOST': 'localhost', 
+#         'PORT': '5432',
+#     }
+# }
 
 
 # Password validation
@@ -217,12 +215,16 @@ REST_FRAMEWORK = {
 }
 
 
-
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    # env("ALLOWED_ORIGIN_URL")
+    "http://147.182.132.60"
 ]
+
+# CORS_ORIGIN_WHITELIST = [
+#     'http://147.182.132.60',  # Add the IP address or domain of your React.js app here
+# ]
+# CORS_ALLOW_CREDENTIALS = True
 
 
 LOGGING = {

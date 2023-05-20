@@ -109,6 +109,19 @@ class LoggerView(APIView):
         return Response(serializerAllFile.data)
 
 
+class AssignedFileListView(APIView):
+    def get(self, request, format=None):
+        user = self.request.user
+        if user.is_organisor:
+            queryset = File.objects.filter(agent__isnull=False)
+        else:
+            queryset = File.objects.filter(agent__isnull=False)
+            queryset = queryset.filter(agent__user=user)
+
+        serializerFile = FileSerializer(queryset, many=True)
+        return Response(serializerFile.data)
+
+
 class FileListView(APIView):
     """
     List all snippets, or create a new snippet.

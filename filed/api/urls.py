@@ -8,13 +8,16 @@ from .views import (
     DocumentView, ActProcedureView, PersonalNotifiedView,
     PaymentView, PaymentDocView, ResolutionView, ResolutionNotificationView,
     TrackDetailView, FileDetailViewII, FileNumView, FileSearchView,
-    FileNumSearchView, ResolutionNumView, CompletedStatus, LoggerView
+    FileNumSearchView, ResolutionNumView, CompletedStatus, LoggerView,
+    AssignedFileListView
 )
 
 urlpatterns = [
     path('files', FileListView.as_view(), name='file-list'),
+    path('assigned-files', AssignedFileListView.as_view()),
     path('all-files', AllFileView.as_view()),
     path('logger-all', LoggerView.as_view()),
+    
 
     # path('file-search/', FileSearchView.as_view(), name='file-list'),
     path('file-search/<pk>', FileNumSearchView.as_view()),
