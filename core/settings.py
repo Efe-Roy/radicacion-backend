@@ -219,7 +219,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://147.182.132.60",
-    "http://licenciasurbanisticas.com"
+    "https://licenciasurbanisticas.com"
 ]
 
 # CORS_ORIGIN_WHITELIST = [
