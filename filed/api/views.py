@@ -98,6 +98,17 @@ class AllFileView(APIView):
         allFiles = File.objects.all()
         serializerAllFile = AllFileSerializer(allFiles, many=True)
         return Response(serializerAllFile.data)
+
+class AllVeryDocView(APIView):
+    def get(self, request, format=None):
+
+        # if VeriyDoc.objects.filter(filev = 291113):
+        #     print("availabel")
+        
+
+        allVery = VeriyDoc.objects.all()
+        serializerAllVery = VeriyDocSerializer(allVery, many=True)
+        return Response(serializerAllVery.data)
     
 class LoggerView(APIView):
     def get(self, request, format=None):
@@ -120,6 +131,12 @@ class AssignedFileListView(APIView):
 
         serializerFile = FileSerializer(queryset, many=True)
         return Response(serializerFile.data)
+    
+class UnAssignedFileListView(APIView):
+    def get(self, request, format=None):
+        unassigned_files = File.objects.filter(agent__isnull=True)
+        unassignedFile = FileSerializer(unassigned_files, many=True)
+        return Response(unassignedFile.data)
 
 
 class FileListView(APIView):
@@ -247,19 +264,20 @@ class FileDetailView(APIView):
             if request.data['State_type'] == 1:
                 print("Activo")
 
-                # ====== send email notification ===== #
-                email = request.data['email']
-                subject= 'seguimiento del estado'
-                from_email= settings.EMAIL_HOST_USER
-                html_template = 'account/active_file_email.html'
-                
-                html_message = render_to_string(html_template, {
-                    'radicado' : filed.file_name
-                })
+                if not request.data['email'] == "":
+                    # ====== send email notification ===== #
+                    email = request.data['email']
+                    subject= 'seguimiento del estado'
+                    from_email= settings.EMAIL_HOST_USER
+                    html_template = 'account/active_file_email.html'
+                    
+                    html_message = render_to_string(html_template, {
+                        'radicado' : filed.file_name
+                    })
 
-                message = EmailMessage(subject, html_message, from_email, [email])
-                message.content_subtype = 'html' # this is required because there is no plain text email version
-                message.send()
+                    message = EmailMessage(subject, html_message, from_email, [email])
+                    message.content_subtype = 'html' # this is required because there is no plain text email version
+                    message.send()
             return Response(serializer.data)
         return Response(serializer.errors, status= HTTP_400_BAD_REQUEST)
 

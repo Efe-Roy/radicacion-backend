@@ -9,13 +9,15 @@ from .views import (
     PaymentView, PaymentDocView, ResolutionView, ResolutionNotificationView,
     TrackDetailView, FileDetailViewII, FileNumView, FileSearchView,
     FileNumSearchView, ResolutionNumView, CompletedStatus, LoggerView,
-    AssignedFileListView
+    AssignedFileListView, UnAssignedFileListView, AllVeryDocView
 )
 
 urlpatterns = [
     path('files', FileListView.as_view(), name='file-list'),
     path('assigned-files', AssignedFileListView.as_view()),
+    path('unassigned-files', UnAssignedFileListView.as_view()),
     path('all-files', AllFileView.as_view()),
+    path('all-very', AllVeryDocView.as_view()),
     path('logger-all', LoggerView.as_view()),
     
 

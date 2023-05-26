@@ -10,11 +10,11 @@ class FileManager(models.Manager):
 class File(models.Model):
     file_name = models.CharField(max_length=500)
     file_date_added = models.DateField(auto_now_add=True)
-    headline = models.CharField(max_length=20)
+    headline = models.CharField(max_length=500)
     passport = models.CharField(max_length=500)
     identify_holder = models.CharField(max_length=500,  null=True, blank=True)
-    estate_reg = models.CharField(max_length=20)
-    phone_number = models.CharField(max_length=20)
+    estate_reg = models.CharField(max_length=500)
+    phone_number = models.CharField(max_length=500)
     email = models.EmailField()
     value_delineation = models.CharField(max_length=60)
     delineation_date = models.DateField(null=True, blank=True)
@@ -25,46 +25,46 @@ class File(models.Model):
     delivery_date = models.DateField(null=True, blank=True)
     notification_date = models.DateField(null=True, blank=True)
     
-    ref_code = models.CharField(max_length=20, blank=True, null=True)
+    ref_code = models.CharField(max_length=500, blank=True, null=True)
     completed = models.BooleanField(default=False)
 
     observation = models.TextField(max_length=1000, null=True, blank=True)
-    observation_date = models.DateField(null=True, blank=True)
+    observation_date = models.DateTimeField(null=True, blank=True)
 
     review = models.BooleanField(default=False)
-    review_date = models.DateField(null=True, blank=True)
+    review_date = models.DateTimeField(null=True, blank=True)
 
     underReview = models.BooleanField(default=False)
-    underReview_date = models.DateField(null=True, blank=True)
+    underReview_date = models.DateTimeField(null=True, blank=True)
 
-    is_notified = models.CharField(max_length=20, blank=True, null=True)
-    is_notified_date = models.DateField(null=True, blank=True)
+    is_notified = models.CharField(max_length=500, blank=True, null=True)
+    is_notified_date = models.DateTimeField(null=True, blank=True)
     is_notified_observation = models.TextField(max_length=1000, null=True, blank=True)
 
-    correct_document = models.CharField(max_length=20, blank=True, null=True)
-    correct_document_date = models.DateField(null=True, blank=True)
+    correct_document = models.CharField(max_length=500, blank=True, null=True)
+    correct_document_date = models.DateTimeField(null=True, blank=True)
 
     process_act_num = models.CharField(max_length=500, null=True, blank=True)
-    process_act_num_date = models.DateField(null=True, blank=True)
+    process_act_num_date = models.DateTimeField(null=True, blank=True)
     liquidation_value = models.CharField(max_length=500, null=True, blank=True)
 
-    is_personal_notified = models.CharField(max_length=20, blank=True, null=True)
-    is_personal_notified_date = models.DateField(null=True, blank=True)
+    is_personal_notified = models.CharField(max_length=500, blank=True, null=True)
+    is_personal_notified_date = models.DateTimeField(null=True, blank=True)
     is_personal_notified_observation = models.TextField(max_length=1000, null=True, blank=True)
 
     # payment form
     payment = models.BooleanField(default=False)
-    payment_status_date = models.DateField(null=True, blank=True)
+    payment_status_date = models.DateTimeField(null=True, blank=True)
 
     payment_receipt_number = models.CharField(max_length=500, null=True, blank=True)
-    payment_receipt_date = models.DateField(null=True, blank=True)
+    payment_receipt_date = models.DateTimeField(null=True, blank=True)
     license_value = models.CharField(max_length=500, null=True, blank=True)
     delineation_tax_value = models.CharField(max_length=500, null=True, blank=True)
 
     # GENERATE RESOLUTION
     resolution_number = models.CharField(max_length=500, null=True, blank=True)
-    resolution_date = models.DateField(null=True, blank=True)
-    resolution_notification_date = models.DateField(null=True, blank=True)
+    resolution_date = models.DateTimeField(null=True, blank=True)
+    resolution_notification_date = models.DateTimeField(null=True, blank=True)
 
     updatedAt = models.DateField(null=True, blank=True)
     agent = models.ForeignKey("Agent", null=True, blank=True, on_delete=models.SET_NULL)
