@@ -6,7 +6,7 @@ from filed.models import Agent
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model=User
-        fields=['username', 'email', 'is_organisor', 'is_agent', 'is_support']
+        fields=['id', 'username', 'email', 'is_organisor', 'is_agent', 'is_support']
 
 
 class SignupSerializer(serializers.ModelSerializer):
