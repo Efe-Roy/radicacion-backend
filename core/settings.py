@@ -49,8 +49,6 @@ INSTALLED_APPS = [
     'rest_auth',
     "corsheaders",
 
-    "import_export",
-
 ]
 
 MIDDLEWARE = [
