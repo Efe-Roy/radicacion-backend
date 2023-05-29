@@ -38,7 +38,8 @@ class CreateAgentView(generics.GenericAPIView):
 
         html_message = render_to_string(html_template, {
                 'user': user,
-                'domain': '127.0.0.1:3000',
+                'domain': 'licenciasurbanisticas.com',
+                # 'domain': '127.0.0.1:3000',
                 'uid': urlsafe_base64_encode(force_bytes(user.pk)),
                 'token': account_activation_token.make_token(user),
             })
