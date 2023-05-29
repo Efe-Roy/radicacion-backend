@@ -15,157 +15,42 @@ from agents.tokens import account_activation_token
 from rest_framework.views import APIView
 from rest_framework import status
 
-# class CreateAgentView(generics.GenericAPIView):
-#     serializer_class = AgentSignUpSerializer
-#     def post(self, request, *args, **kwargs):
-#         serializer=self.get_serializer(data=request.data)
-#         serializer.is_valid(raise_exception=True)
-#         user = serializer.save()
-
-#         if user.is_support == True:
-#             UserProfile.objects.create(user=user)
-#         if user.is_agent == True:
-#             Agent.objects.create(
-#             user=user,
-#             organisation= self.request.user.userprofile
-#         )
-
-#         # ====== send email notification ===== #
-#         email = user.email
-#         subject= 'Activate Your SLDC Account'
-#         from_email= settings.EMAIL_HOST_USER
-#         html_template = 'account/account_activation_email.html'
-
-#         html_message = render_to_string(html_template, {
-#                 'user': user,
-#                 'domain': '127.0.0.1:3000',
-#                 'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-#                 'token': account_activation_token.make_token(user),
-#             })
-
-#         message = EmailMessage(subject, html_message, from_email, [email])
-#         message.content_subtype = 'html' # this is required because there is no plain text email version
-#         message.send()
-
-#         return Response({
-#             "user": AgentSignUpSerializer(user, context=self.get_serializer_context()).data,
-#             "message": "account create successfully"
-#         })
-
-
-# class CreateAgentView(generics.GenericAPIView):
-#     serializer_class = AgentSignUpSerializer
-
-#     def post(self, request, *args, **kwargs):
-#         serializer = self.get_serializer(data=request.data)
-#         serializer.is_valid(raise_exception=True)
-#         user = serializer.save()
-
-#         if user.is_support:
-#             UserProfile.objects.create(user=user)
-#         if user.is_agent:
-#             Agent.objects.create(
-#                 user=user,
-#                 organisation=self.request.user.userprofile
-#             )
-
-#         # Send email notification
-#         email = user.email
-#         subject = 'Activate Your SLDC Account'
-#         from_email = settings.EMAIL_HOST_USER
-#         html_template = 'account/account_activation_email.html'
-
-#         html_message = render_to_string(html_template, {
-#             'user': user,
-#             'domain': '127.0.0.1:3000',
-#             'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-#             'token': account_activation_token.make_token(user),
-#         })
-
-#         try:
-#             message = EmailMessage(subject, html_message, from_email, [email])
-#             message.content_subtype = 'html'
-#             message.send()
-
-#             return Response({
-#                 "user": AgentSignUpSerializer(user, context=self.get_serializer_context()).data,
-#                 "message": "Account created successfully"
-#             })
-#         except Exception as e:
-#             # Handle the email sending failure
-#             print(f"Email sending failed: {e}")
-
-#             # Delete the created user and associated profiles
-#             user.delete()
-#             if user.is_support:
-#                 UserProfile.objects.filter(user=user).delete()
-#             if user.is_agent:
-#                 Agent.objects.filter(user=user).delete()
-
-#             print("Failed to create account. Please try again later.")
-
-#             return Response( "No se pudo crear la cuenta. Valide todos los datos y vuelva a intentarlo más tarde.", status=status.HTTP_400_BAD_REQUEST)
-
-
 class CreateAgentView(generics.GenericAPIView):
     serializer_class = AgentSignUpSerializer
-
     def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        serializer=self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        email = serializer.validated_data['email']
+        user = serializer.save()
 
-        user, created = User.objects.get_or_create(email=email, defaults={'username': email})
-        if not created:
-            # If user already exists with the given email, return an error response
-            return Response({
-                "message": "User with this email already exists."
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        # Perform other necessary operations here
-        if user.is_support:
+        if user.is_support == True:
             UserProfile.objects.create(user=user)
-        if user.is_agent:
+        if user.is_agent == True:
             Agent.objects.create(
-                user=user,
-                organisation=self.request.user.userprofile
-            )
+            user=user,
+            organisation= self.request.user.userprofile
+        )
 
-        # Send email notification
-        subject = 'Activate Your SLDC Account'
-        from_email = settings.EMAIL_HOST_USER
+        # ====== send email notification ===== #
+        email = user.email
+        subject= 'Activate Your SLDC Account'
+        from_email= settings.EMAIL_HOST_USER
         html_template = 'account/account_activation_email.html'
 
         html_message = render_to_string(html_template, {
-            'user': user,
-            'domain': '127.0.0.1:3000',
-            'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-            'token': account_activation_token.make_token(user),
-        })
-
-        try:
-            message = EmailMessage(subject, html_message, from_email, [email])
-            message.content_subtype = 'html'
-            message.send()
-
-            return Response({
-                "user": AgentSignUpSerializer(user, context=self.get_serializer_context()).data,
-                "message": "Account created successfully"
+                'user': user,
+                'domain': '127.0.0.1:3000',
+                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                'token': account_activation_token.make_token(user),
             })
-        except Exception as e:
-            # Handle the email sending failure
-            print(f"Email sending failed: {e}")
 
-            # Delete the created user and associated profiles
-            user.delete()
-            if user.is_support:
-                UserProfile.objects.filter(user=user).delete()
-            if user.is_agent:
-                Agent.objects.filter(user=user).delete()
+        message = EmailMessage(subject, html_message, from_email, [email])
+        message.content_subtype = 'html' # this is required because there is no plain text email version
+        message.send()
 
-            return Response({
-                "message": "Failed to create account. Please try again later."
-            }, status=status.HTTP_400_BAD_REQUEST)
+        return Response({
+            "user": AgentSignUpSerializer(user, context=self.get_serializer_context()).data,
+            "message": "account create successfully"
+        })
 
 
 class ActivateView(APIView):
