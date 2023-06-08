@@ -21,7 +21,7 @@ urlpatterns = [
     path('logger-all', LoggerView.as_view()),
     
 
-    # path('file-search/', FileSearchView.as_view(), name='file-list'),
+    path('file-search/', FileSearchView.as_view(), name='file-list'),
     path('file-search/<pk>', FileNumSearchView.as_view()),
     path('files/<pk>/', FileDetailView.as_view(), name='file-detail'),
     path('filesii/<pk>/', FileDetailViewII.as_view()),
