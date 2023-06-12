@@ -3903,24 +3903,44 @@ data = [
 
 
 
-for item in data:
+# for item in data:
 
-    file_date_added = item.get('file_date_added', '')
-    file_type= FileType.objects.create(name=item['file_type'])
+#     file_date_added = item.get('file_date_added', '')
+#     file_type= FileType.objects.create(name=item['file_type'])
+#     passport = item.get('passport', '')
+#     phone_number = item.get('phone_number', '')
+#     email = item.get('email', '')
+#     headline = item.get('headline', '')
+
+#     File.objects.create(
+#         file_date_added=file_date_added,
+#         headline=headline,
+#         file_name=item['file_name'],
+#         file_type= file_type,
+#         passport=str(passport),
+#         phone_number=str(phone_number),
+#         email=email,
+#         organisation_id = 1
+#     )
+    
+#     print("Succssfully Seeded the data")
+
+
+for item in reversed(data):
+    file_type = item['file_type']
     passport = item.get('passport', '')
     phone_number = item.get('phone_number', '')
-    email = item.get('email', '')
-    headline = item.get('headline', '')
 
-    File.objects.create(
-        file_date_added=file_date_added,
-        headline=headline,
+    # Retrieve the file entry from the database
+    file_entry = File.objects.filter(
         file_name=item['file_name'],
-        file_type= file_type,
         passport=str(passport),
-        phone_number=str(phone_number),
-        email=email,
-        organisation_id = 1
-    )
-    
-    print("Succssfully Seeded the data")
+        phone_number=str(phone_number)
+    ).first()
+
+    # Delete the file entry if it exists
+    if file_entry:
+        file_entry.delete()
+        print("Successfully deleted the data")
+
+print("Deletion process completed")
