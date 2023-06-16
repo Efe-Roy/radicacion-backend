@@ -8,6 +8,7 @@ class User(AbstractUser):
     is_organisor = models.BooleanField(default=True)
     is_agent = models.BooleanField(default=False)
     is_support = models.BooleanField(default=False)
+    email_confirmed = models.BooleanField(default=False)
     phone_num = models.CharField(max_length=300, null=True, blank=True)
 
 class UserProfile(models.Model):
