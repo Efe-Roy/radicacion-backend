@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.core.files import File
 from account.models import User, UserProfile
 from filed.models import Agent
 
@@ -6,9 +7,40 @@ from filed.models import Agent
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model=User
-        fields=['id', 'username', 'email', 'is_organisor', 'is_agent', 'is_support']
+        fields=['id', 'username', 'first_name', 'last_name', 'email', 'phone_num', 'is_organisor', 'is_agent', 'is_support']
 
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ['photo']
 
+    def update(self, instance, validated_data):
+        photo_file = self.context['request'].data.get('photo')
+        if photo_file:
+            instance.photo.save(photo_file.name, File(photo_file))
+
+        return instance
+
+class UserSerializer2(serializers.ModelSerializer):
+    profile = UserProfileSerializer(required=False)
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'phone_num', 'profile']
+
+        def update(self, instance, validated_data):
+            profile_data = validated_data.pop('profile', {})
+            profile_serializer = self.fields['profile']
+            profile = instance.profile
+
+            for attr, value in profile_data.items():
+                setattr(profile, attr, value)
+
+            profile.save()
+
+            return super().update(instance, validated_data)
+
+        
 class SignupSerializer(serializers.ModelSerializer):
     password2=serializers.CharField(style={"input_type":"password"}, write_only=True)
     class Meta:

@@ -2,13 +2,14 @@ from rest_framework import generics
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.response import Response
-from .serializers import UserSerializer, SignupSerializer
+from .serializers import UserSerializer, SignupSerializer, UserSerializer2
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from account.models import User, FailedLogin
 
 # from django.contrib.auth import get_user_model
 from django.contrib.auth.signals import user_logged_in, user_login_failed
 from django.dispatch import receiver
+from rest_framework.parsers import MultiPartParser, FormParser
 
 @receiver(user_logged_in)
 def user_logged_recv(sender, request, user, **kwargs):
@@ -69,4 +70,40 @@ class UserListView(generics.ListAPIView):
 class UserDetail(generics.RetrieveAPIView):
     permission_classes = (AllowAny,)
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserSerializer2
+
+
+class UserDetailEditView(generics.UpdateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer2
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def update(self, request, *args, **kwargs):
+        user = self.get_object()
+
+        photo = request.FILES.get('photo')
+        if photo:
+            print("Found photo")
+
+
+        serializer = self.get_serializer(user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
+    def perform_update(self, serializer):
+        profile_serializer = serializer.fields['profile']
+        profile_instance = serializer.instance.profile if hasattr(serializer.instance, 'profile') else None
+        profile_data = self.request.data.get('profile')
+
+        if profile_data and profile_instance:
+            profile_serializer = profile_serializer(profile_instance, data=profile_data, partial=True)
+            profile_serializer.is_valid(raise_exception=True)
+            profile_serializer.save()
+        elif profile_data and not profile_instance:
+            profile_serializer = profile_serializer(data=profile_data)
+            profile_serializer.is_valid(raise_exception=True)
+            profile_serializer.save(user=serializer.instance)
+
+        serializer.save()

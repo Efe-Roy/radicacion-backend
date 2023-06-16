@@ -54,17 +54,17 @@ class FileNumView(APIView):
         # query last value of file unique number
         get_file = File.objects.all()
         if get_file.exists():
-            print("Has Data")
+            # print("Has Data")
             # last_file = File.objects.filter(organisation=2).order_by('-id')[0]
             last_file = File.objects.all().order_by('-id')[0]
             file_num = int(last_file.file_name) + 1
             d = "%05d" % ( file_num, )
-            print(d)
+            # print(d)
         else:
             print("Empty")
             file_num = 1
             d = "%05d" % ( file_num, )
-            print(d)
+            # print(d)
 
         return Response(d)
     
@@ -76,7 +76,7 @@ class ResolutionNumView(APIView):
         if last_file.resolution_number is not None:
             file_num = int(last_file.resolution_number[3:]) + 1
             result = "OOT%05d" % ( file_num, )
-            print(result)
+            # print(result)
         else:
             print('variable stores a None value')
             file_num = 1
@@ -163,17 +163,17 @@ class FileListView(APIView):
         # query last value of file unique number
         get_file = File.objects.all()
         if get_file.exists():
-            print("Has Data")
+            # print("Has Data")
             # last_file = File.objects.filter(organisation=2).order_by('-id')[0]
             last_file = File.objects.all().order_by('-id')[0]
             file_num = int(last_file.file_name) + 1
             d = "%05d" % ( file_num, )
-            print(d)
+            # print(d)
         else:
             print("Empty")
             file_num = 1
             d = "%05d" % ( file_num, )
-            print(d)
+            # print(d)
 
         if user.is_organisor or user.is_support:
             x_id = user.userprofile.id

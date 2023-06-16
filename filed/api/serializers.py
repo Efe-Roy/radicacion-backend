@@ -145,7 +145,7 @@ class FileCreateSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model=User
-        fields=['id', 'username', 'email', 'is_organisor', 'is_agent', 'is_support']
+        fields=['id', 'username', 'first_name', 'last_name', 'email', 'is_organisor', 'is_agent', 'is_support']
 
 class AssignAgentSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()

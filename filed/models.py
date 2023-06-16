@@ -74,7 +74,7 @@ class File(models.Model):
     objects = FileManager()
 
     def __str__(self):
-        return f"{self.headline}"
+        return f"{self.file_name}"
         # return f"{self.headline} {self.phone_number}"
 
 
