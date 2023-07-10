@@ -144,8 +144,12 @@ class RequestPasswordResetEmail(generics.GenericAPIView):
 
             redirect_url = request.data.get('redirect_url', '')
             absurl = 'http://'+current_site + relativeLink
+            absurl2 = 'https://licenciasurbanisticas.com/reset-password/'+ uidb64 + '/' + token
+            # email_body = 'Hello, \n Use link below to reset your password  \n' + \
+            #     absurl+"?redirect_url="+redirect_url + "\n" + \
+            #     absurl2
             email_body = 'Hello, \n Use link below to reset your password  \n' + \
-                absurl+"?redirect_url="+redirect_url
+                absurl2
             # from_email= settings.EMAIL_HOST_USER
             data = {'email_body': email_body, 'to_email': user.email,
                     'from_email': settings.EMAIL_HOST_USER ,'email_subject': 'Reset your passsword'}
