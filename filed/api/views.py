@@ -58,12 +58,12 @@ class FileNumView(APIView):
             # last_file = File.objects.filter(organisation=2).order_by('-id')[0]
             last_file = File.objects.all().order_by('-id')[0]
             file_num = int(last_file.file_name) + 1
-            d = "%05d" % ( file_num, )
+            d = "%04d" % ( file_num, )
             # print(d)
         else:
             print("Empty")
             file_num = 1
-            d = "%05d" % ( file_num, )
+            d = "%04d" % ( file_num, )
             # print(d)
 
         return Response(d)
@@ -167,12 +167,12 @@ class FileListView(APIView):
             # last_file = File.objects.filter(organisation=2).order_by('-id')[0]
             last_file = File.objects.all().order_by('-id')[0]
             file_num = int(last_file.file_name) + 1
-            d = "%05d" % ( file_num, )
+            d = "%04d" % ( file_num, )
             # print(d)
         else:
             print("Empty")
             file_num = 1
-            d = "%05d" % ( file_num, )
+            d = "%04d" % ( file_num, )
             # print(d)
 
         if user.is_organisor or user.is_support:

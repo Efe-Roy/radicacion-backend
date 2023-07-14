@@ -27,24 +27,24 @@ class CustomRedirect(HttpResponsePermanentRedirect):
 
     allowed_schemes = [os.environ.get('APP_SCHEME'), 'http', 'https']
 
-@receiver(user_logged_in)
-def user_logged_recv(sender, request, user, **kwargs):
-    FailedLogin.objects.filter(user=user).delete()
+# @receiver(user_logged_in)
+# def user_logged_recv(sender, request, user, **kwargs):
+#     FailedLogin.objects.filter(user=user).delete()
 
-@receiver(user_login_failed)
-def user_login_failed_recv(sender, credentials, request, **kwargs):
-    # User = get_user_model()
-    try:
-        u = User.objects.get(username = credentials.get('username'))
-        # there is a user with the given username
-        FailedLogin.objects.create(user=u)
-        if FailedLogin.objects.filter(user=u).count() >= 3:
-            # three tries or more, disactivate the user
-            u.is_active = False
-            u.save()
-    except User.DoesNotExist:
-        # user not found, we can not do anything
-        pass
+# @receiver(user_login_failed)
+# def user_login_failed_recv(sender, credentials, request, **kwargs):
+#     # User = get_user_model()
+#     try:
+#         u = User.objects.get(username = credentials.get('username'))
+#         # there is a user with the given username
+#         FailedLogin.objects.create(user=u)
+#         if FailedLogin.objects.filter(user=u).count() >= 3:
+#             # three tries or more, disactivate the user
+#             u.is_active = False
+#             u.save()
+#     except User.DoesNotExist:
+#         # user not found, we can not do anything
+#         pass
 
 
 
