@@ -311,11 +311,37 @@ class verifyDocCreateView(CreateAPIView):
     serializer_class = VeriyDocSerializer
     queryset = VeriyDoc.objects.all()
 
-class verifyDocUpdateView(UpdateAPIView):
-    permission_classes = (AllowAny,)
-    # permission_classes = (IsAuthenticated, )
-    serializer_class = VeriyDocSerializer
-    queryset = VeriyDoc.objects.all()
+# class verifyDocUpdateView(UpdateAPIView):
+#     permission_classes = (AllowAny,)
+#     # permission_classes = (IsAuthenticated, )
+#     serializer_class = VeriyDocSerializer
+#     queryset = VeriyDoc.objects.all()
+
+
+class verifyDocUpdateView(APIView):
+    """
+    Retrieve, update or delete a snippet instance.
+    """
+    def get_object(self, pk):
+        try:
+            return VeriyDoc.objects.get(filev=pk)
+        except VeriyDoc.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk, format=None):
+        filed = self.get_object(pk)
+        
+        serializer = VeriyDocSerializer(filed)
+        return Response(serializer.data)
+
+    def put(self, request, pk, format=None):
+        filed = self.get_object(pk)
+        serializer = VeriyDocSerializer(filed, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+    
 
 class CompletedStatus(APIView):
     """

@@ -270,6 +270,7 @@ class AllTrackSerializer(serializers.ModelSerializer):
             'is_personal_notified_observation',
             'correct_document',
             'correct_document_date',
+            'file_name',
             'process_act_num',
             'process_act_num_date',
             'liquidation_value',
