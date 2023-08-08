@@ -13,7 +13,7 @@ urlpatterns = [
     path('user/detail/<pk>/', UserDetail.as_view()),
 
     path('user/edit/<pk>/', UserDetailEditView.as_view()),
-
+ 
 
     path('request-reset-email/', RequestPasswordResetEmail.as_view(),
          name="request-reset-email"),

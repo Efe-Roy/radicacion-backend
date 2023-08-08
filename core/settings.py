@@ -21,7 +21,8 @@ SECRET_KEY = "django-insecure-a&3+0t=32fxqhxb=p)w)1a5+$te$qc6zt52yt28@5ss9h-t*_!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['159.223.112.223','radicaciondelicencias.com', '*']
+ALLOWED_HOSTS = ['159.223.112.223','radicaciondelicencias.com', '127.0.0.1']
+# ALLOWED_HOSTS = ['radicaciondelicencias.com']
 
 
 # Application definition
@@ -212,18 +213,13 @@ REST_FRAMEWORK = {
     ]
 }
 
-
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "http://147.182.132.60",
+    # "http://147.182.132.60",
     "https://licenciasurbanisticas.com"
 ]
 
-# CORS_ORIGIN_WHITELIST = [
-#     'http://147.182.132.60',  # Add the IP address or domain of your React.js app here
-# ]
-# CORS_ALLOW_CREDENTIALS = True
 
 
 LOGGING = {
