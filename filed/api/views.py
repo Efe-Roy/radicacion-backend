@@ -3,7 +3,6 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404
 from django.shortcuts import render, get_object_or_404
-from django.utils import timezone
 from datetime import datetime
 import datetime
 from django.core.mail import send_mail
@@ -32,18 +31,13 @@ from rest_framework.filters import SearchFilter
 from django.contrib.auth import get_user_model
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
-from background_task import background
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.authentication import TokenAuthentication
+from datetime import timedelta
 
-# import the logging library
 import logging
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
-
-
-import schedule
-import time
-
-from datetime import timedelta
 
 
 class FileNumView(APIView):
@@ -120,24 +114,78 @@ class LoggerView(APIView):
         return Response(serializerAllFile.data)
 
 
-class AssignedFileListView(APIView):
-    def get(self, request, format=None):
+class CustomPagination(PageNumberPagination):
+    page_size_query_param = 'PageSize'
+    # max_page_size = 100
+
+class UnAssignedFileListView(ListCreateAPIView):
+    authentication_classes = [TokenAuthentication]
+    serializer_class = FileSerializer
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_organisor:
+            queryset = File.objects.filter(agent__isnull=True)
+        elif user.is_support:
+            queryset = File.objects.filter(agent__isnull=True)
+            # queryset = queryset.filter(agent__user=user)
+        else:
+            print("User Unauthorise")
+            queryset = File.objects.none()
+   
+        queryset = queryset.order_by('-file_name')
+
+        return queryset
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=HTTP_200_OK)
+
+class AssignedFileListView(ListCreateAPIView):
+    authentication_classes = [TokenAuthentication]
+    serializer_class = FileSerializer
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
         user = self.request.user
         if user.is_organisor:
             queryset = File.objects.filter(agent__isnull=False)
-        else:
+        elif user.is_agent:
             queryset = File.objects.filter(agent__isnull=False)
             queryset = queryset.filter(agent__user=user)
+        else:
+            print("User Unauthorise")
+            queryset = File.objects.none()
+            
 
-        serializerFile = FileSerializer(queryset, many=True)
-        return Response(serializerFile.data)
+        # Filter based on request parameters
+        file_name = self.request.query_params.get('file_name', None)
+        if file_name:
+            queryset = queryset.filter(file_name__icontains=file_name)
+   
+        queryset = queryset.order_by('-file_name')
+
+        return queryset
     
-class UnAssignedFileListView(APIView):
-    def get(self, request, format=None):
-        unassigned_files = File.objects.filter(agent__isnull=True)
-        unassignedFile = FileSerializer(unassigned_files, many=True)
-        return Response(unassignedFile.data)
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        total_count = queryset.count() if queryset is not None else 0
 
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=HTTP_200_OK)
 
 class FileListView(APIView):
     """
@@ -180,7 +228,7 @@ class FileListView(APIView):
         else:
             x_id = ""
         
-        print("x_id", x_id)
+        # print("x_id", x_id)
 
         return Response({
             "user_id": user.id,
@@ -194,7 +242,20 @@ class FileListView(APIView):
     def post(self, request, format=None):
         serializer = FileCreateSerializer(data=request.data)
         if serializer.is_valid():
+
+            get_file = File.objects.all()
+            if get_file.exists():
+                last_file = File.objects.all().order_by('-id')[0]
+                file_num = int(last_file.file_name) + 1
+                d = "%04d" % ( file_num, )
+                serializer.validated_data['file_name'] = d
+            else:
+                file_num = 1
+                d = "%04d" % ( file_num, )
+                serializer.validated_data['file_name'] = d
+
             serializer.save()
+
             LoggerAll.objects.create(msg='Se creó un nuevo archivo')
             return Response(serializer.data, status= HTTP_201_CREATED)
         return Response(serializer.errors, status= HTTP_400_BAD_REQUEST)

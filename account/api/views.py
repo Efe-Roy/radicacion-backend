@@ -65,6 +65,10 @@ class CustomAuthToken(ObtainAuthToken):
         serializer = self.serializer_class(data=request.data, context={'request':request})
         serializer.is_valid(raise_exception=True)
         user= serializer.validated_data['user']
+
+        if not user.is_active:
+            return Response({'message': 'Account is not active.'}, status=status.HTTP_401_UNAUTHORIZED)
+
         token, created = Token.objects.get_or_create(user=user)
 
         return Response({
