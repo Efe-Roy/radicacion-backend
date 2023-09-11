@@ -15,7 +15,7 @@ class File(models.Model):
     identify_holder = models.CharField(max_length=500,  null=True, blank=True)
     estate_reg = models.CharField(null=True, blank=True, max_length=500)
     phone_number = models.CharField(null=True, blank=True, max_length=500)
-    email = models.EmailField()
+    email = models.EmailField(null=True, blank=True)
     value_delineation = models.CharField(null=True, blank=True, max_length=60)
     delineation_date = models.DateField(null=True, blank=True)
     delineation_payment = models.CharField(null=True, blank=True, max_length=40)
