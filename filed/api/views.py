@@ -89,7 +89,7 @@ class AllFileView(APIView):
     def get(self, request, format=None):
         logger.warning('Homepage was accessed at '+str(datetime.datetime.now())+' hours!')
 
-        allFiles = File.objects.all()
+        allFiles = File.objects.all().order_by('-file_name')
         serializerAllFile = AllFileSerializer(allFiles, many=True)
         return Response(serializerAllFile.data)
 
@@ -157,6 +157,8 @@ class AssignedFileListView(ListCreateAPIView):
     def get_queryset(self):
         user = self.request.user
         if user.is_organisor:
+            queryset = File.objects.filter(agent__isnull=False)
+        elif user.is_support:
             queryset = File.objects.filter(agent__isnull=False)
         elif user.is_agent:
             queryset = File.objects.filter(agent__isnull=False)
