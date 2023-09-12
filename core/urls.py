@@ -6,9 +6,9 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('account.urls')),
-    path('files/', include('filed.urls', namespace="files")),
-    path('agents/',  include('agents.urls', namespace="agents")),
+    # path('', include('account.urls')),
+    # path('files/', include('filed.urls', namespace="files")),
+    # path('agents/',  include('agents.urls', namespace="agents")),
 
     # Api Banger Boos
     path('api/', include("filed.api.urls")),
