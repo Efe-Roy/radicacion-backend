@@ -26,6 +26,16 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
         return instance
 
+class ListUserProfileSerializer(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField()
+
+    class Meta:
+        model = UserProfile
+        fields = ('id', 'user')
+
+    def get_user(self, obj):
+        return UserSerializer(obj.user).data
+    
 class UserSerializer2(serializers.ModelSerializer):
     profile = UserProfileSerializer(required=False)
 
