@@ -17,7 +17,8 @@ from .serializers import (
     ObservationSerializer, ReviewSerializer, DocumentSerializer, LoggerSerializer,
     ActProcedureSerializer, PaymentDocSerializer, PaymentSerializer,
     ResolutionSerializer, ResolutionNotificationSerializer, UnderReviewSerializer,
-    NotifiedSerializer, PersonalNotifiedSerializer, FileTypeSerializer, AllTrackSerializer
+    NotifiedSerializer, PersonalNotifiedSerializer, FileTypeSerializer, AllTrackSerializer, 
+    ResolutionSerializer2, OperatorObservationSerializer
 )
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from filed.models import File, Agent, Category, VeriyDoc, FileType, LoggerAll
@@ -435,6 +436,11 @@ class verifyDocUpdateView(APIView):
         return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
     
 
+class OperatorObservationView(UpdateAPIView):
+    permission_classes = (AllowAny, )
+    serializer_class = OperatorObservationSerializer
+    queryset = File.objects.all()
+    
 class CompletedStatus(APIView):
     """
     Retrieve, update or delete a snippet instance.
@@ -649,9 +655,44 @@ class ResolutionView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status= HTTP_400_BAD_REQUEST)
 
+class ResolutionView2(APIView):
+    def get_object(self, pk):
+        try:
+            return File.objects.get(id=pk)
+        except File.DoesNotExist:
+            raise Http404
+        
+    def put(self, request, pk, format=None):
+        # User = get_user_model()
+        filed = self.get_object(pk)
+        serializer = ResolutionSerializer2(filed, data=request.data)
+        if serializer.is_valid():
+            # print("filed Data", filed.email)
+            serializer.save()
+
+            # ============================= send email =====================================
+            email = filed.email
+            subject= 'Se genero tu resolusión'
+            from_email= settings.EMAIL_HOST_USER
+            html_template = 'account/aresolution_email.html'
+            
+            html_message = render_to_string(html_template, {
+                'radicado' : filed.file_name
+            })
+
+            message = EmailMessage(subject, html_message, from_email, [email])
+            message.content_subtype = 'html' # this is required because there is no plain text email version
+            message.send()
+
+
+            return Response(serializer.data)
+        return Response(serializer.errors, status= HTTP_400_BAD_REQUEST)
+
 class ResolutionNotificationView(UpdateAPIView):
     permission_classes = (AllowAny, )
     serializer_class = ResolutionNotificationSerializer
     queryset = File.objects.all()
+
+
 
 

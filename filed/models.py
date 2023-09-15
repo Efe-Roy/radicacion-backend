@@ -24,6 +24,8 @@ class File(models.Model):
     State_type = models.ForeignKey("StateType", null=True, blank=True, on_delete=models.SET_NULL)
     delivery_date = models.DateField(null=True, blank=True)
     notification_date = models.DateField(null=True, blank=True)
+
+    operator_observation = models.TextField(max_length=2000, null=True, blank=True)
     
     ref_code = models.CharField(max_length=500, blank=True, null=True)
     completed = models.BooleanField(default=False)
@@ -64,6 +66,8 @@ class File(models.Model):
     # GENERATE RESOLUTION
     resolution_number = models.CharField(max_length=500, null=True, blank=True)
     resolution_date = models.DateTimeField(null=True, blank=True)
+    resolution_number2 = models.CharField(max_length=500, null=True, blank=True)
+    resolution_date2 = models.DateTimeField(null=True, blank=True)
     resolution_notification_date = models.DateTimeField(null=True, blank=True)
 
     updatedAt = models.DateField(null=True, blank=True)

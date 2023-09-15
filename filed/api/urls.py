@@ -9,7 +9,8 @@ from .views import (
     PaymentView, PaymentDocView, ResolutionView, ResolutionNotificationView,
     TrackDetailView, FileDetailViewII, FileNumView, FileSearchView,
     FileNumSearchView, ResolutionNumView, CompletedStatus, LoggerView,
-    AssignedFileListView, UnAssignedFileListView, AllVeryDocView
+    AssignedFileListView, UnAssignedFileListView, AllVeryDocView, 
+    ResolutionView2, OperatorObservationView
 )
 
 urlpatterns = [
@@ -36,6 +37,7 @@ urlpatterns = [
     path('file-type/', FileTypeView.as_view(), name='file-type'),
     path('file-num/', FileNumView.as_view()),
     path('resolution-num/', ResolutionNumView.as_view()),
+    path('operator-observation/<int:pk>/', OperatorObservationView.as_view() ),
 
 
     # =============== track progresss ====================
@@ -49,6 +51,7 @@ urlpatterns = [
     path('payment/<int:pk>/', PaymentView.as_view() ),
     path('payment-doc/<int:pk>/', PaymentDocView.as_view() ),
     path('resolution/<int:pk>/', ResolutionView.as_view() ),
+    path('resolution2/<int:pk>/', ResolutionView2.as_view() ),
     path('resolution-notification/<int:pk>/', ResolutionNotificationView.as_view() ),
     path('track-detail/<int:pk>/', TrackDetailView.as_view() ),
 ]

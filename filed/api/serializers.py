@@ -59,6 +59,7 @@ class FileSerializer(serializers.ModelSerializer):
             'State_type',
             'delivery_date',
             'notification_date',
+            'operator_observation',
             'organisation'
         )
 
@@ -113,6 +114,15 @@ class CompleteSerializer(serializers.ModelSerializer):
         fields = (
             'completed',
         )
+
+class OperatorObservationSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = File
+        fields = (
+            'operator_observation',
+        )
+
 
 
 class FileCreateSerializer(serializers.ModelSerializer):
@@ -282,6 +292,8 @@ class AllTrackSerializer(serializers.ModelSerializer):
             'delineation_tax_value',
             'resolution_number',
             'resolution_date',
+            'resolution_number2',
+            'resolution_date2',
             'resolution_notification_date',
         )
 
@@ -381,6 +393,15 @@ class ResolutionSerializer(serializers.ModelSerializer):
             'resolution_date',
         )
 
+class ResolutionSerializer2(serializers.ModelSerializer):
+
+    class Meta:
+        model = File
+        fields = (
+            'resolution_number2',
+            'resolution_date2',
+        )
+
 class ResolutionNotificationSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -388,4 +409,5 @@ class ResolutionNotificationSerializer(serializers.ModelSerializer):
         fields = (
             'resolution_notification_date',
         )
+
 
