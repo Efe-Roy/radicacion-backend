@@ -286,10 +286,17 @@ class AllTrackSerializer(serializers.ModelSerializer):
             'liquidation_value',
             'payment',
             'payment_status_date',
+            
             'payment_receipt_number',
             'payment_receipt_date',
             'license_value',
             'delineation_tax_value',
+
+            'payment_receipt_number2',
+            'payment_receipt_date2',
+            'license_value2',
+            'delineation_tax_value2',
+
             'resolution_number',
             'resolution_date',
             'resolution_number2',
@@ -382,6 +389,17 @@ class PaymentDocSerializer(serializers.ModelSerializer):
             'payment_receipt_date',
             'license_value',
             'delineation_tax_value',
+        )
+
+class PaymentDocSerializer2(serializers.ModelSerializer):
+
+    class Meta:
+        model = File
+        fields = (
+            'payment_receipt_number2',
+            'payment_receipt_date2',
+            'license_value2',
+            'delineation_tax_value2',
         )
 
 class ResolutionSerializer(serializers.ModelSerializer):

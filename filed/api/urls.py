@@ -6,7 +6,7 @@ from .views import (
 
     UnderReview, ReviewView, ObservationView, NotifiedView,
     DocumentView, ActProcedureView, PersonalNotifiedView,
-    PaymentView, PaymentDocView, ResolutionView, ResolutionNotificationView,
+    PaymentView, PaymentDocView, PaymentDocView2, ResolutionView, ResolutionNotificationView,
     TrackDetailView, FileDetailViewII, FileNumView, FileSearchView,
     FileNumSearchView, ResolutionNumView, CompletedStatus, LoggerView,
     AssignedFileListView, UnAssignedFileListView, AllVeryDocView, 
@@ -50,6 +50,7 @@ urlpatterns = [
     path('personal-notified/<int:pk>/', PersonalNotifiedView.as_view() ),
     path('payment/<int:pk>/', PaymentView.as_view() ),
     path('payment-doc/<int:pk>/', PaymentDocView.as_view() ),
+    path('payment-doc2/<int:pk>/', PaymentDocView2.as_view() ),
     path('resolution/<int:pk>/', ResolutionView.as_view() ),
     path('resolution2/<int:pk>/', ResolutionView2.as_view() ),
     path('resolution-notification/<int:pk>/', ResolutionNotificationView.as_view() ),

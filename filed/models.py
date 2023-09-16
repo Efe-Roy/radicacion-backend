@@ -63,6 +63,11 @@ class File(models.Model):
     license_value = models.CharField(max_length=500, null=True, blank=True)
     delineation_tax_value = models.CharField(max_length=500, null=True, blank=True)
 
+    payment_receipt_number2 = models.CharField(max_length=500, null=True, blank=True)
+    payment_receipt_date2 = models.DateTimeField(null=True, blank=True)
+    license_value2 = models.CharField(max_length=500, null=True, blank=True)
+    delineation_tax_value2 = models.CharField(max_length=500, null=True, blank=True)
+
     # GENERATE RESOLUTION
     resolution_number = models.CharField(max_length=500, null=True, blank=True)
     resolution_date = models.DateTimeField(null=True, blank=True)

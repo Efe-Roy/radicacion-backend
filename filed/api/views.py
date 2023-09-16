@@ -15,7 +15,7 @@ from .serializers import (
     FileSerializer, FileCreateSerializer, AssignAgentSerializer, AllFileSerializer,
     AssignFileAgentSerializer, VeriyDocSerializer, CompleteSerializer,
     ObservationSerializer, ReviewSerializer, DocumentSerializer, LoggerSerializer,
-    ActProcedureSerializer, PaymentDocSerializer, PaymentSerializer,
+    ActProcedureSerializer, PaymentDocSerializer, PaymentDocSerializer2, PaymentSerializer,
     ResolutionSerializer, ResolutionNotificationSerializer, UnderReviewSerializer,
     NotifiedSerializer, PersonalNotifiedSerializer, FileTypeSerializer, AllTrackSerializer, 
     ResolutionSerializer2, OperatorObservationSerializer
@@ -620,6 +620,11 @@ class PaymentView(UpdateAPIView):
 class PaymentDocView(UpdateAPIView):
     permission_classes = (AllowAny, )
     serializer_class = PaymentDocSerializer
+    queryset = File.objects.all()
+
+class PaymentDocView2(UpdateAPIView):
+    permission_classes = (AllowAny, )
+    serializer_class = PaymentDocSerializer2
     queryset = File.objects.all()
 
 class ResolutionView(APIView):
