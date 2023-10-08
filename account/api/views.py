@@ -20,6 +20,7 @@ from django.http import HttpResponsePermanentRedirect
 import os
 from django.core.mail import send_mail
 from django.conf import settings
+from rest_framework.pagination import PageNumberPagination
 
 
 
@@ -81,11 +82,16 @@ class CustomAuthToken(ObtainAuthToken):
             "email": user.email,
         })
 
+class CustomPageNumberPagination(PageNumberPagination):
+    page_size_query_param = 'PageSize'
+    # max_page_size = 100  # Set the maximum page size if needed
 
 class UserListView(generics.ListAPIView):
     permission_classes = (AllowAny,)
     serializer_class = UserSerializer
-    queryset = User.objects.all()
+    queryset = User.objects.all().order_by('-date_joined')
+    pagination_class = CustomPageNumberPagination
+
 
 class UserProfileListView(generics.ListAPIView):
     permission_classes = (AllowAny,)

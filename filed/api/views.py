@@ -131,9 +131,20 @@ class AllFileView(ListCreateAPIView):
         file_name = self.request.query_params.get('file_name', None)
         if file_name:
             queryset = queryset.filter(file_name__icontains=file_name)
+            queryset = queryset.order_by('-file_name')
+        
+        estate_reg = self.request.query_params.get('estate_reg', None)
+        if estate_reg:
+            queryset = queryset.filter(estate_reg__icontains=estate_reg)
+        
+        identify_holder = self.request.query_params.get('identify_holder', None)
+        if identify_holder:
+            queryset = queryset.filter(identify_holder__icontains=identify_holder)
+        
+        headline = self.request.query_params.get('headline', None)
+        if headline:
+            queryset = queryset.filter(headline__icontains=headline)
 
-
-        queryset = queryset.order_by('-file_name')
         return queryset
     
     def list(self, request, *args, **kwargs):
