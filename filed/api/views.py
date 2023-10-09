@@ -103,9 +103,14 @@ class LoggerView(APIView):
         newDate = datetime.date.today() + datetime.timedelta(days=4)
         print("newDate", newDate)
 
-        loggerFiles = LoggerAll.objects.all()
+        loggerFiles = LoggerAll.objects.all().order_by("-id")
+        count = LoggerAll.objects.count()
+        print("counte", count)
         serializerAllFile = LoggerSerializer(loggerFiles, many=True)
-        return Response(serializerAllFile.data)
+        return Response({
+            "data": serializerAllFile.data,
+            "count": count
+            })
 
 
 class CustomPagination(PageNumberPagination):
@@ -133,13 +138,21 @@ class AllFileView(ListCreateAPIView):
             queryset = queryset.filter(file_name__icontains=file_name)
             queryset = queryset.order_by('-file_name')
         
+        file_type_id = self.request.query_params.get('file_type_id', None)
+        if file_type_id:
+            queryset = queryset.filter(file_type_id=file_type_id)
+                
+        State_type_id = self.request.query_params.get('State_type_id', None)
+        if State_type_id:
+            queryset = queryset.filter(State_type_id=State_type_id)
+        
         estate_reg = self.request.query_params.get('estate_reg', None)
         if estate_reg:
             queryset = queryset.filter(estate_reg__icontains=estate_reg)
         
-        identify_holder = self.request.query_params.get('identify_holder', None)
-        if identify_holder:
-            queryset = queryset.filter(identify_holder__icontains=identify_holder)
+        passport = self.request.query_params.get('passport', None)
+        if passport:
+            queryset = queryset.filter(passport__icontains=passport)
         
         headline = self.request.query_params.get('headline', None)
         if headline:
