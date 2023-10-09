@@ -390,7 +390,7 @@ class FileDetailView(APIView):
         filed.delete()
         return Response(status= HTTP_204_NO_CONTENT)
 
-class FileDetailViewII(RetrieveAPIView):
+class FileDetailViewII(APIView):
     def get_object(self, pk):
         try:
             return File.objects.get(id=pk)
