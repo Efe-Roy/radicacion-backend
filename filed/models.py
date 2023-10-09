@@ -135,6 +135,9 @@ class VeriyDoc(models.Model):
     # underReview = models.BooleanField(default=False)
     # underReview_date = models.DateField(null=True, blank=True)
 
+    def __str__(self):
+        return f"{self.filev}"
+
 
 class FileType(models.Model):
     name = models.CharField(max_length=110)
