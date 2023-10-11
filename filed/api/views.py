@@ -18,7 +18,7 @@ from .serializers import (
     ActProcedureSerializer, PaymentDocSerializer, PaymentDocSerializer2, PaymentSerializer,
     ResolutionSerializer, ResolutionNotificationSerializer, UnderReviewSerializer,
     NotifiedSerializer, PersonalNotifiedSerializer, FileTypeSerializer, AllTrackSerializer, 
-    ResolutionSerializer2, OperatorObservationSerializer
+    ResolutionSerializer2, OperatorObservationSerializer, OfficialLetterIssuedSerializer
 )
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from filed.models import File, Agent, Category, VeriyDoc, FileType, LoggerAll
@@ -150,6 +150,14 @@ class AllFileView(ListCreateAPIView):
         estate_reg = self.request.query_params.get('estate_reg', None)
         if estate_reg:
             queryset = queryset.filter(estate_reg__icontains=estate_reg)
+        
+        resolution_number = self.request.query_params.get('resolution_number', None)
+        if resolution_number:
+            queryset = queryset.filter(resolution_number__icontains=resolution_number)
+        
+        resolution_number2 = self.request.query_params.get('resolution_number2', None)
+        if resolution_number2:
+            queryset = queryset.filter(resolution_number2__icontains=resolution_number2)
         
         passport = self.request.query_params.get('passport', None)
         if passport:
@@ -746,6 +754,38 @@ class ResolutionNotificationView(UpdateAPIView):
     serializer_class = ResolutionNotificationSerializer
     queryset = File.objects.all()
 
+# class OfficialLetterIssuedView(UpdateAPIView):
+#     permission_classes = (AllowAny, )
+#     serializer_class = OfficialLetterIssuedSerializer
+#     queryset = File.objects.all()
+    # Se acaba de emitir una carta oficial
 
+class OfficialLetterIssuedView(APIView):
+    def get_object(self, pk):
+        try:
+            return File.objects.get(id=pk)
+        except File.DoesNotExist:
+            raise Http404
+        
+    def put(self, request, pk, format=None):
+        # User = get_user_model()
+        filed = self.get_object(pk)
+        serializer = OfficialLetterIssuedSerializer(filed, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+
+            # ============================= send email =====================================
+            email = filed.email
+            subject= 'Se acaba de emitir una carta oficial'
+            from_email= settings.EMAIL_HOST_USER
+            message= f"""
+                Se acaba de emitir una carta oficial
+            """
+            recipient_list=[email]
+            send_mail(subject, message, from_email, recipient_list, fail_silently=False)
+
+
+            return Response(serializer.data)
+        return Response(serializer.errors, status= HTTP_400_BAD_REQUEST)
 
 

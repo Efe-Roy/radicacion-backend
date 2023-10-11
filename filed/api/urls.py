@@ -10,7 +10,7 @@ from .views import (
     TrackDetailView, FileDetailViewII, FileNumView, FileSearchView,
     FileNumSearchView, ResolutionNumView, CompletedStatus, LoggerView,
     AssignedFileListView, UnAssignedFileListView, AllVeryDocView, 
-    ResolutionView2, OperatorObservationView
+    ResolutionView2, OperatorObservationView, OfficialLetterIssuedView
 )
 
 urlpatterns = [
@@ -54,5 +54,6 @@ urlpatterns = [
     path('resolution/<int:pk>/', ResolutionView.as_view() ),
     path('resolution2/<int:pk>/', ResolutionView2.as_view() ),
     path('resolution-notification/<int:pk>/', ResolutionNotificationView.as_view() ),
+    path('official_letter_issued/<int:pk>/', OfficialLetterIssuedView.as_view() ),
     path('track-detail/<int:pk>/', TrackDetailView.as_view() ),
 ]

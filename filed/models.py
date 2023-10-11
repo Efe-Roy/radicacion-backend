@@ -74,6 +74,8 @@ class File(models.Model):
     resolution_number2 = models.CharField(max_length=500, null=True, blank=True)
     resolution_date2 = models.DateTimeField(null=True, blank=True)
     resolution_notification_date = models.DateTimeField(null=True, blank=True)
+    
+    official_letter_issued = models.DateField(null=True, blank=True)
 
     updatedAt = models.DateField(null=True, blank=True)
     agent = models.ForeignKey("Agent", null=True, blank=True, on_delete=models.SET_NULL)

@@ -302,6 +302,8 @@ class AllTrackSerializer(serializers.ModelSerializer):
             'resolution_number2',
             'resolution_date2',
             'resolution_notification_date',
+
+            'official_letter_issued',
         )
 
 class ObservationSerializer(serializers.ModelSerializer):
@@ -426,6 +428,15 @@ class ResolutionNotificationSerializer(serializers.ModelSerializer):
         model = File
         fields = (
             'resolution_notification_date',
+        )
+
+
+class OfficialLetterIssuedSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = File
+        fields = (
+            'official_letter_issued',
         )
 
 
