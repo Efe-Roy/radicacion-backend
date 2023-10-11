@@ -35,6 +35,7 @@ from django.template.loader import render_to_string
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.authentication import TokenAuthentication
 from datetime import timedelta
+from django.db.models import Sum, F, DecimalField, Count
 
 import logging
 # Get an instance of a logger
@@ -163,13 +164,35 @@ class AllFileView(ListCreateAPIView):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
 
+        # page = self.paginate_queryset(queryset)
+        # if page is not None:
+        #     serializer = self.get_serializer(page, many=True)
+        #     return self.get_paginated_response(serializer.data)
+
+        # serializer = self.get_serializer(queryset, many=True)
+        # return Response(serializer.data, status=HTTP_200_OK)
+    
+        State_type_counts = queryset.values('State_type__name').annotate(State_type_count=Count('State_type'))
+        file_type_counts = queryset.values('file_type__name').annotate(file_type_count=Count('file_type'))
+
+        # Paginate the queryset
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+            response_data = {
+                'results': serializer.data,
+                'State_type_counts': State_type_counts,
+                'file_type_counts': file_type_counts
+            }
+            return self.get_paginated_response(response_data)
 
         serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data, status=HTTP_200_OK)
+        response_data = {
+            'results': serializer.data,
+            'State_type_counts': State_type_counts,
+            'file_type_counts': file_type_counts
+        }
+        return Response(response_data)
 
     
 class UnAssignedFileListView(ListCreateAPIView):
@@ -242,6 +265,7 @@ class AssignedFileListView(ListCreateAPIView):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=HTTP_200_OK)
+    
 
 class FileListView(APIView):
     """
