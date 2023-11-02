@@ -26,6 +26,7 @@ class File(models.Model):
     notification_date = models.DateField(null=True, blank=True)
 
     operator_observation = models.TextField(max_length=2000, null=True, blank=True)
+    # observation_list = models.ForeignKey("operatorObservation", null=True, blank=True, on_delete=models.SET_NULL)
     
     ref_code = models.CharField(max_length=500, blank=True, null=True)
     completed = models.BooleanField(default=False)
@@ -146,6 +147,14 @@ class FileType(models.Model):
 
     def __str__(self):
         return self.name
+
+class operatorObservation(models.Model):
+    fileID = models.ForeignKey("File", related_name="observationList", null=True, blank=True, on_delete=models.CASCADE)
+    observation = models.TextField(max_length=2000, null=True, blank=True)
+    createdAt = models.DateField(auto_now_add=True, null=True, blank=True)
+
+    def __str__(self):
+        return self.observation
 
 
 class StateType(models.Model):

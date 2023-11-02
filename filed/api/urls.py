@@ -10,7 +10,8 @@ from .views import (
     TrackDetailView, FileDetailViewII, FileNumView, FileSearchView,
     FileNumSearchView, ResolutionNumView, CompletedStatus, LoggerView,
     AssignedFileListView, UnAssignedFileListView, AllVeryDocView, 
-    ResolutionView2, OperatorObservationView, OfficialLetterIssuedView
+    ResolutionView2, OperatorObservationView, OfficialLetterIssuedView,
+    OperatorObservationMainView, OperatorObservationUpdateView, OperatorObservationGetView
 )
 
 urlpatterns = [
@@ -39,6 +40,9 @@ urlpatterns = [
     path('resolution-num/', ResolutionNumView.as_view()),
     path('operator-observation/<int:pk>/', OperatorObservationView.as_view() ),
 
+    path('observation_get_post', OperatorObservationMainView.as_view() ),
+    path('observation_get/<int:pk>/', OperatorObservationGetView.as_view() ),
+    path('observation_detail_update/<int:pk>/', OperatorObservationUpdateView.as_view() ),
 
     # =============== track progresss ====================
     path('under-review/<int:pk>/', UnderReview.as_view() ),

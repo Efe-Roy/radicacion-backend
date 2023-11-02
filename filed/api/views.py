@@ -18,10 +18,11 @@ from .serializers import (
     ActProcedureSerializer, PaymentDocSerializer, PaymentDocSerializer2, PaymentSerializer,
     ResolutionSerializer, ResolutionNotificationSerializer, UnderReviewSerializer,
     NotifiedSerializer, PersonalNotifiedSerializer, FileTypeSerializer, AllTrackSerializer, 
-    ResolutionSerializer2, OperatorObservationSerializer, OfficialLetterIssuedSerializer
+    ResolutionSerializer2, OperatorObservationSerializer, OfficialLetterIssuedSerializer,
+    OperatorObservationMainSerializer
 )
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from filed.models import File, Agent, Category, VeriyDoc, FileType, LoggerAll
+from filed.models import File, Agent, operatorObservation, VeriyDoc, FileType, LoggerAll
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.status import (
@@ -754,12 +755,6 @@ class ResolutionNotificationView(UpdateAPIView):
     serializer_class = ResolutionNotificationSerializer
     queryset = File.objects.all()
 
-# class OfficialLetterIssuedView(UpdateAPIView):
-#     permission_classes = (AllowAny, )
-#     serializer_class = OfficialLetterIssuedSerializer
-#     queryset = File.objects.all()
-    # Se acaba de emitir una carta oficial
-
 class OfficialLetterIssuedView(APIView):
     def get_object(self, pk):
         try:
@@ -789,3 +784,48 @@ class OfficialLetterIssuedView(APIView):
         return Response(serializer.errors, status= HTTP_400_BAD_REQUEST)
 
 
+class OperatorObservationMainView(APIView):
+    def get(self, request, format=None):
+        observationFile = operatorObservation.objects.all()
+        serializer = OperatorObservationMainSerializer(observationFile, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, format=None):
+        serializer = OperatorObservationMainSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status= HTTP_201_CREATED)
+        return Response(serializer.errors, status= HTTP_400_BAD_REQUEST)
+
+
+class OperatorObservationGetView(APIView):
+    def get(self, request, pk, format=None):
+        observationFile = operatorObservation.objects.filter(fileID=pk)
+        serializer = OperatorObservationMainSerializer(observationFile, many=True)
+        return Response(serializer.data)
+
+class OperatorObservationUpdateView(APIView):
+    def get_object(self, pk):
+        try:
+            return operatorObservation.objects.get(id=pk)
+        except operatorObservation.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk, format=None):
+        obj = self.get_object(pk)
+        serializer = OperatorObservationMainSerializer(obj)
+        return Response(serializer.data)
+
+    def put(self, request, pk, format=None):
+        obj = self.get_object(pk)
+        serializer = OperatorObservationMainSerializer(obj, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request, pk, format=None):
+        obj = self.get_object(pk)
+        obj.delete()
+        return Response(status= HTTP_204_NO_CONTENT)
+    

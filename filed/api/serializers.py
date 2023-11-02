@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from filed.models import (
-    File, Agent, Category, VeriyDoc, FileType, StateType, LoggerAll
+    File, Agent, Category, VeriyDoc, FileType, StateType, LoggerAll, operatorObservation
 )
 from account.models import User
 
@@ -12,6 +12,17 @@ class FileTypeSerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'name'
+        )
+
+class OperatorObservationMainSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = operatorObservation
+        fields = (
+            'id',
+            'fileID',
+            'observation',
+            'createdAt'
         )
 
 class LoggerSerializer(serializers.ModelSerializer):
