@@ -94,7 +94,8 @@ class UserListView(generics.ListAPIView):
 
 
 class UserProfileListView(generics.ListAPIView):
-    permission_classes = (AllowAny,)
+    permission_classes = [IsAuthenticated]
+    # permission_classes = (AllowAny,)
     serializer_class = ListUserProfileSerializer
     queryset = UserProfile.objects.all()
 
