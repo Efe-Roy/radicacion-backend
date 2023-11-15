@@ -4,7 +4,8 @@ from account.models import UserProfile, User
 
 class FileManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset()
+        # return super().get_queryset()
+        return super().get_queryset().filter(is_deleted=False)
 
 
 class File(models.Model):
@@ -83,11 +84,14 @@ class File(models.Model):
     file_type = models.ForeignKey("FileType", null=True, blank=True, on_delete=models.SET_NULL)
     category = models.ForeignKey("Category", related_name="files", null=True, blank=True, on_delete=models.SET_NULL)
     organisation = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    modified_at = models.DateTimeField(auto_now=True)
+    is_deleted = models.BooleanField(default=False)
     objects = FileManager()
 
     def __str__(self):
         return f"{self.file_name}"
-        # return f"{self.headline} {self.phone_number}"
 
 
 class VeriyDoc(models.Model):
@@ -186,5 +190,20 @@ class Category(models.Model):
 
 
 class LoggerAll(models.Model):
+    UPDATED = 'update'
+    CREATE = 'create'
+    DELETE = 'delete'
+    EMPTY = 'empty'
+
+    ACTION_CHOICES = (
+        (UPDATED, 'update'),
+        (CREATE, 'create'),
+        (DELETE, 'delete'),
+        (EMPTY, 'empty'),
+    )
+
     msg = models.CharField(max_length=500)
+    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES, default=EMPTY)
     createdAt = models.DateField(auto_now_add=True)
+

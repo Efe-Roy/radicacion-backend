@@ -4,48 +4,18 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.response import Response
 from .serializers import UserSerializer, SignupSerializer, UserSerializer2, ResetPasswordEmailRequestSerializer, SetNewPasswordSerializer, ListUserProfileSerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from account.models import User, FailedLogin, UserProfile
+from account.models import User, UserProfile
 
-# from django.contrib.auth import get_user_model
-from django.contrib.auth.signals import user_logged_in, user_login_failed
-from django.dispatch import receiver
 from rest_framework.parsers import MultiPartParser, FormParser
 
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import smart_str, force_str, smart_bytes, DjangoUnicodeDecodeError
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-# from django.contrib.sites.shortcuts import get_current_site
-from django.urls import reverse
-from django.http import HttpResponsePermanentRedirect
 import os
 from django.core.mail import send_mail
 from django.conf import settings
 from rest_framework.pagination import PageNumberPagination
 
-
-
-class CustomRedirect(HttpResponsePermanentRedirect):
-
-    allowed_schemes = [os.environ.get('APP_SCHEME'), 'http', 'https']
-
-# @receiver(user_logged_in)
-# def user_logged_recv(sender, request, user, **kwargs):
-#     FailedLogin.objects.filter(user=user).delete()
-
-# @receiver(user_login_failed)
-# def user_login_failed_recv(sender, credentials, request, **kwargs):
-#     # User = get_user_model()
-#     try:
-#         u = User.objects.get(username = credentials.get('username'))
-#         # there is a user with the given username
-#         FailedLogin.objects.create(user=u)
-#         if FailedLogin.objects.filter(user=u).count() >= 3:
-#             # three tries or more, disactivate the user
-#             u.is_active = False
-#             u.save()
-#     except User.DoesNotExist:
-#         # user not found, we can not do anything
-#         pass
 
 
 
@@ -84,14 +54,13 @@ class CustomAuthToken(ObtainAuthToken):
 
 class CustomPageNumberPagination(PageNumberPagination):
     page_size_query_param = 'PageSize'
-    # max_page_size = 100  # Set the maximum page size if needed
 
 class UserListView(generics.ListAPIView):
-    permission_classes = (AllowAny,)
+    permission_classes = [IsAuthenticated]
+    # permission_classes = (AllowAny,)
     serializer_class = UserSerializer
     queryset = User.objects.all().order_by('-date_joined')
     pagination_class = CustomPageNumberPagination
-
 
 class UserProfileListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
@@ -100,15 +69,16 @@ class UserProfileListView(generics.ListAPIView):
     queryset = UserProfile.objects.all()
 
 class UserDetail(generics.RetrieveAPIView):
-    permission_classes = (AllowAny,)
+    permission_classes = [IsAuthenticated]
+    # permission_classes = (AllowAny,)
     queryset = User.objects.all()
     serializer_class = UserSerializer2
 
 
 class UserDetailEditView(generics.UpdateAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer2
     permission_classes = [IsAuthenticated]
+    serializer_class = UserSerializer2
+    queryset = User.objects.all()
     parser_classes = [MultiPartParser, FormParser]
 
     def update(self, request, *args, **kwargs):
@@ -145,25 +115,15 @@ class RequestPasswordResetEmail(generics.GenericAPIView):
     serializer_class = ResetPasswordEmailRequestSerializer
 
     def post(self, request):
-        # serializer = self.serializer_class(data=request.data)
-
         email = request.data.get('email', '')
 
         if User.objects.filter(email=email).exists():
             user = User.objects.get(email=email)
             uidb64 = urlsafe_base64_encode(smart_bytes(user.id))
             token = PasswordResetTokenGenerator().make_token(user)
-            # current_site = get_current_site(
-            #     request=request).domain
-            # relativeLink = reverse(
-            #     'password-reset-confirm', kwargs={'uidb64': uidb64, 'token': token})
-
-            # redirect_url = request.data.get('redirect_url', '')
-            # absurl = 'http://'+current_site + relativeLink
+           
             absurl2 = 'https://licenciasurbanisticas.com/reset-password/'+ uidb64 + '/' + token
-            # email_body = 'Hello, \n Use link below to reset your password  \n' + \
-            #     absurl+"?redirect_url="+redirect_url + "\n" + \
-            #     absurl2
+            
             email_body = 'Hello, \n Use link below to reset your password  \n' + \
                 absurl2
             # from_email= settings.EMAIL_HOST_USER
@@ -178,8 +138,6 @@ class PasswordTokenCheckAPI(generics.GenericAPIView):
 
     def get(self, request, uidb64, token):
 
-        redirect_url = request.GET.get('redirect_url')
-
         try:
             id = smart_str(urlsafe_base64_decode(uidb64))
             user = User.objects.get(id=id)
@@ -188,26 +146,11 @@ class PasswordTokenCheckAPI(generics.GenericAPIView):
                 return Response({'error': 'Token is not valid, please request a new one'}, status=status.HTTP_400_BAD_REQUEST)
             return Response({'succes': True, 'Message': 'Credential Valid', 'uid64': uidb64, 'token': token}, status=status.HTTP_200_OK)
             
-                # if len(redirect_url) > 3:
-                #     return CustomRedirect(redirect_url+'?token_valid=False')
-                # else:
-                #     return CustomRedirect(os.environ.get('FRONTEND_URL', '')+'?token_valid=False')
-
-            # if redirect_url and len(redirect_url) > 3:
-            #     return CustomRedirect(redirect_url+'?token_valid=True&message=Credentials Valid&uidb64='+uidb64+'&token='+token)
-            # else:
-            #     return CustomRedirect(os.environ.get('FRONTEND_URL', '')+'?token_valid=False')
 
         except DjangoUnicodeDecodeError as identifier:
             if not PasswordResetTokenGenerator().check_token(user):
                 return Response({'error': 'Token is not valid, please request a new one'}, status=status.HTTP_400_BAD_REQUEST)
-            # try:
-            #     if not PasswordResetTokenGenerator().check_token(user):
-            #         return CustomRedirect(redirect_url+'?token_valid=False')
-                    
-            # except UnboundLocalError as e:
-            #     return Response({'error': 'Token is not valid, please request a new one'}, status=status.HTTP_400_BAD_REQUEST)
-
+      
 
 class SetNewPasswordAPIView(generics.GenericAPIView):
     serializer_class = SetNewPasswordSerializer

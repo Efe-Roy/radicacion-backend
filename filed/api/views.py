@@ -6,11 +6,6 @@ from django.shortcuts import render, get_object_or_404
 from datetime import datetime
 import datetime
 from django.core.mail import send_mail
-from rest_framework.generics import (
-    ListAPIView, RetrieveAPIView, CreateAPIView,
-    UpdateAPIView, DestroyAPIView, GenericAPIView,
-    ListCreateAPIView
-)
 from .serializers import ( 
     FileSerializer, FileCreateSerializer, AssignAgentSerializer, AllFileSerializer,
     AssignFileAgentSerializer, VeriyDocSerializer, CompleteSerializer,
@@ -25,12 +20,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from filed.models import File, Agent, operatorObservation, VeriyDoc, FileType, LoggerAll
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.status import (
-    HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_201_CREATED,
-    HTTP_204_NO_CONTENT
-)
+from rest_framework import status, generics
 from rest_framework.filters import SearchFilter
-from django.contrib.auth import get_user_model
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from rest_framework.pagination import PageNumberPagination
@@ -82,7 +73,7 @@ class ResolutionNumView(APIView):
 
         return Response(result)
 
-class FileSearchView(ListAPIView):
+class FileSearchView(generics.ListAPIView):
     queryset = File.objects.all()
     serializer_class = FileSerializer
     filter_backends = [SearchFilter]
@@ -120,7 +111,7 @@ class CustomPagination(PageNumberPagination):
     # max_page_size = 100
 
 
-class AllFileView(ListCreateAPIView):
+class AllFileView(generics.ListCreateAPIView):
     # authentication_classes = [TokenAuthentication]
     serializer_class = AllFileSerializer
     pagination_class = CustomPagination
@@ -204,7 +195,7 @@ class AllFileView(ListCreateAPIView):
         return Response(response_data)
 
     
-class UnAssignedFileListView(ListCreateAPIView):
+class UnAssignedFileListView(generics.ListCreateAPIView):
     authentication_classes = [TokenAuthentication]
     serializer_class = FileSerializer
     pagination_class = CustomPagination
@@ -233,9 +224,9 @@ class UnAssignedFileListView(ListCreateAPIView):
             return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data, status=HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-class AssignedFileListView(ListCreateAPIView):
+class AssignedFileListView(generics.ListCreateAPIView):
     authentication_classes = [TokenAuthentication]
     serializer_class = FileSerializer
     pagination_class = CustomPagination
@@ -273,7 +264,7 @@ class AssignedFileListView(ListCreateAPIView):
             return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data, status=HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
 
 class FileListView(APIView):
@@ -345,9 +336,12 @@ class FileListView(APIView):
 
             serializer.save()
 
-            LoggerAll.objects.create(msg='Se creó un nuevo archivo')
-            return Response(serializer.data, status= HTTP_201_CREATED)
-        return Response(serializer.errors, status= HTTP_400_BAD_REQUEST)
+            LoggerAll.objects.create(
+                msg='Se creó un nuevo archivo',
+                action='create'
+            )
+            return Response(serializer.data, status= status.HTTP_201_CREATED)
+        return Response(serializer.errors, status= status.status.HTTP_400_BAD_REQUEST)
 
 class FileNumSearchView(APIView):
     """
@@ -387,7 +381,7 @@ class FileDetailView(APIView):
         verifyy = VeriyDoc.objects.filter(filev = filed.id)
         # verifySerializer = VeriyDocSerializer(verifyy)
         if verifyy.exists():
-            print("Has data")
+            # print("Has data")
             verifyy = VeriyDoc.objects.get(filev = filed.id)
             verifySerializer1 = VeriyDocSerializer(verifyy)
             verifySerializer = verifySerializer1.data
@@ -408,7 +402,10 @@ class FileDetailView(APIView):
         if serializer.is_valid():
             serializer.save()
 
-            LoggerAll.objects.create(msg='Se actualizó un archivo con el número ' + request.data["file_name"])
+            LoggerAll.objects.create(
+                msg='Se actualizó un archivo con el número ' + request.data["file_name"],
+                action='update'
+            )
 
             # print("ffff data", request.data['State_type'])
             if request.data['State_type'] == 1:
@@ -429,12 +426,14 @@ class FileDetailView(APIView):
                     message.content_subtype = 'html' # this is required because there is no plain text email version
                     message.send()
             return Response(serializer.data)
-        return Response(serializer.errors, status= HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk, format=None):
         filed = self.get_object(pk)
-        filed.delete()
-        return Response(status= HTTP_204_NO_CONTENT)
+        # filed.delete()
+        filed.is_deleted = True
+        filed.save()
+        return Response(status= status.HTTP_204_NO_CONTENT)
 
 class FileDetailViewII(APIView):
     def get_object(self, pk):
@@ -450,18 +449,18 @@ class FileDetailViewII(APIView):
         serializer = FileSerializer(filed)
         return Response(serializer.data)
 
-class TrackDetailView(RetrieveAPIView):
+class TrackDetailView(generics.RetrieveAPIView):
     permission_classes = (AllowAny,)
     serializer_class = AllTrackSerializer
     queryset = File.objects.all()
 
-class verifyDocCreateView(CreateAPIView):
+class verifyDocCreateView(generics.CreateAPIView):
     permission_classes = (AllowAny,)
     # permission_classes = (IsAuthenticated, )
     serializer_class = VeriyDocSerializer
     queryset = VeriyDoc.objects.all()
 
-# class verifyDocUpdateView(UpdateAPIView):
+# class verifyDocUpdateView(generics.UpdateAPIView):
 #     permission_classes = (AllowAny,)
 #     # permission_classes = (IsAuthenticated, )
 #     serializer_class = VeriyDocSerializer
@@ -490,10 +489,10 @@ class verifyDocUpdateView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
-class OperatorObservationView(UpdateAPIView):
+class OperatorObservationView(generics.UpdateAPIView):
     permission_classes = (AllowAny, )
     serializer_class = OperatorObservationSerializer
     queryset = File.objects.all()
@@ -520,7 +519,7 @@ class CompletedStatus(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status= HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
 
 class AssignAgentRetrieveView(APIView):
     """
@@ -541,7 +540,6 @@ class AssignAgentView(APIView):
             raise Http404
         
     def put(self, request, pk, format=None):
-        # User = get_user_model()
         filed = self.get_object(pk)
         serializer = AssignFileAgentSerializer(filed, data=request.data)
         if serializer.is_valid():
@@ -549,8 +547,12 @@ class AssignAgentView(APIView):
             serializer.save()
             u = Agent.objects.get(id = request.data["agent"])
             # print("u", u.user.email)
-            
-            LoggerAll.objects.create(msg='Se ha asignado un archivo con este número '+ filed.file_name )
+            # user = 
+            LoggerAll.objects.create(
+                msg='Se ha asignado un archivo con este número '+ filed.file_name,
+                action='update',
+
+            )
 
             # ====== send email notification ===== #
             email = u.user.email
@@ -567,23 +569,23 @@ class AssignAgentView(APIView):
             message.send()
 
             return Response(serializer.data)
-        return Response(serializer.errors, status= HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
 
-class verifyDocDeleteView(DestroyAPIView):
+class verifyDocDeleteView(generics.DestroyAPIView):
     permission_classes = (AllowAny, )
     queryset = VeriyDoc.objects.all()
 
-class FileTypeView(ListAPIView):
+class FileTypeView(generics.ListAPIView):
     permission_classes = (AllowAny,)
     serializer_class = FileTypeSerializer
     queryset = FileType.objects.all()
 
-class UnderReview(UpdateAPIView):
+class UnderReview(generics.UpdateAPIView):
     permission_classes = (AllowAny, )
     serializer_class = UnderReviewSerializer
     queryset = File.objects.all()
 
-class ReviewView(UpdateAPIView):
+class ReviewView(generics.UpdateAPIView):
     permission_classes = (AllowAny, )
     serializer_class = ReviewSerializer
     queryset = File.objects.all()
@@ -617,15 +619,15 @@ class ObservationView(APIView):
             
 
             return Response(serializer.data)
-        return Response(serializer.errors, status= HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
 
 
-class NotifiedView(UpdateAPIView):
+class NotifiedView(generics.UpdateAPIView):
     permission_classes = (AllowAny, )
     serializer_class = NotifiedSerializer
     queryset = File.objects.all()
 
-class DocumentView(UpdateAPIView):
+class DocumentView(generics.UpdateAPIView):
     permission_classes = (AllowAny, )
     serializer_class = DocumentSerializer
     queryset = File.objects.all()
@@ -638,7 +640,6 @@ class ActProcedureView(APIView):
             raise Http404
         
     def put(self, request, pk, format=None):
-        # User = get_user_model()
         filed = self.get_object(pk)
         serializer = ActProcedureSerializer(filed, data=request.data)
         if serializer.is_valid():
@@ -662,24 +663,24 @@ class ActProcedureView(APIView):
 
 
             return Response(serializer.data)
-        return Response(serializer.errors, status= HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
 
-class PersonalNotifiedView(UpdateAPIView):
+class PersonalNotifiedView(generics.UpdateAPIView):
     permission_classes = (AllowAny, )
     serializer_class = PersonalNotifiedSerializer
     queryset = File.objects.all()
 
-class PaymentView(UpdateAPIView):
+class PaymentView(generics.UpdateAPIView):
     permission_classes = (AllowAny, )
     serializer_class = PaymentSerializer
     queryset = File.objects.all()
 
-class PaymentDocView(UpdateAPIView):
+class PaymentDocView(generics.UpdateAPIView):
     permission_classes = (AllowAny, )
     serializer_class = PaymentDocSerializer
     queryset = File.objects.all()
 
-class PaymentDocView2(UpdateAPIView):
+class PaymentDocView2(generics.UpdateAPIView):
     permission_classes = (AllowAny, )
     serializer_class = PaymentDocSerializer2
     queryset = File.objects.all()
@@ -692,7 +693,6 @@ class ResolutionView(APIView):
             raise Http404
         
     def put(self, request, pk, format=None):
-        # User = get_user_model()
         filed = self.get_object(pk)
         serializer = ResolutionSerializer(filed, data=request.data)
         if serializer.is_valid():
@@ -715,7 +715,7 @@ class ResolutionView(APIView):
 
 
             return Response(serializer.data)
-        return Response(serializer.errors, status= HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
 
 class ResolutionView2(APIView):
     def get_object(self, pk):
@@ -725,7 +725,6 @@ class ResolutionView2(APIView):
             raise Http404
         
     def put(self, request, pk, format=None):
-        # User = get_user_model()
         filed = self.get_object(pk)
         serializer = ResolutionSerializer2(filed, data=request.data)
         if serializer.is_valid():
@@ -748,9 +747,9 @@ class ResolutionView2(APIView):
 
 
             return Response(serializer.data)
-        return Response(serializer.errors, status= HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
 
-class ResolutionNotificationView(UpdateAPIView):
+class ResolutionNotificationView(generics.UpdateAPIView):
     permission_classes = (AllowAny, )
     serializer_class = ResolutionNotificationSerializer
     queryset = File.objects.all()
@@ -763,7 +762,6 @@ class OfficialLetterIssuedView(APIView):
             raise Http404
         
     def put(self, request, pk, format=None):
-        # User = get_user_model()
         filed = self.get_object(pk)
         serializer = OfficialLetterIssuedSerializer(filed, data=request.data)
         if serializer.is_valid():
@@ -781,7 +779,7 @@ class OfficialLetterIssuedView(APIView):
 
 
             return Response(serializer.data)
-        return Response(serializer.errors, status= HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
 
 
 class OperatorObservationMainView(APIView):
@@ -794,8 +792,8 @@ class OperatorObservationMainView(APIView):
         serializer = OperatorObservationMainSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status= HTTP_201_CREATED)
-        return Response(serializer.errors, status= HTTP_400_BAD_REQUEST)
+            return Response(serializer.data, status= status.HTTP_201_CREATED)
+        return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
 
 
 class OperatorObservationGetView(APIView):
@@ -822,10 +820,10 @@ class OperatorObservationUpdateView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def delete(self, request, pk, format=None):
         obj = self.get_object(pk)
         obj.delete()
-        return Response(status= HTTP_204_NO_CONTENT)
+        return Response(status= status.HTTP_204_NO_CONTENT)
     

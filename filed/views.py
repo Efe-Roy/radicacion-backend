@@ -320,7 +320,7 @@ class FileCreateView(LoginRequiredMixin, generic.CreateView):
         # query last value of file unique number
         get_file = File.objects.filter(organisation=user.id)
         if get_file.exists():
-            print("Has Data")
+            # print("Has Data")
             last_file = File.objects.filter(organisation=user.id).order_by('-id')[0]
             file_num = int(last_file.file_name) + 1
             d = "%05d" % ( file_num, )
