@@ -11,7 +11,7 @@ from .views import (
     FileNumSearchView, ResolutionNumView, CompletedStatus, LoggerView,
     AssignedFileListView, UnAssignedFileListView, AllVeryDocView, 
     ResolutionView2, OperatorObservationView, OfficialLetterIssuedView,
-    OperatorObservationMainView, OperatorObservationUpdateView, OperatorObservationGetView
+    OperatorObservationPostView, OperatorObservationUpdateView, OperatorObservationGetView
 )
 
 urlpatterns = [
@@ -40,7 +40,7 @@ urlpatterns = [
     path('resolution-num/', ResolutionNumView.as_view()),
     path('operator-observation/<int:pk>/', OperatorObservationView.as_view() ),
 
-    path('observation_get_post', OperatorObservationMainView.as_view() ),
+    path('observation_post', OperatorObservationPostView.as_view() ),
     path('observation_get/<int:pk>/', OperatorObservationGetView.as_view() ),
     path('observation_detail_update/<int:pk>/', OperatorObservationUpdateView.as_view() ),
 

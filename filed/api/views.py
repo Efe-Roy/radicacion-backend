@@ -782,19 +782,13 @@ class OfficialLetterIssuedView(APIView):
         return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
 
 
-class OperatorObservationMainView(APIView):
-    def get(self, request, format=None):
-        observationFile = operatorObservation.objects.all()
-        serializer = OperatorObservationMainSerializer(observationFile, many=True)
-        return Response(serializer.data)
-
+class OperatorObservationPostView(APIView):
     def post(self, request, format=None):
         serializer = OperatorObservationMainSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status= status.HTTP_201_CREATED)
         return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
-
 
 class OperatorObservationGetView(APIView):
     def get(self, request, pk, format=None):
