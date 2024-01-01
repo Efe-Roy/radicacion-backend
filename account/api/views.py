@@ -11,13 +11,26 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import smart_str, force_str, smart_bytes, DjangoUnicodeDecodeError
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-import os
+from rest_framework.views import APIView
+from django.contrib import auth
 from django.core.mail import send_mail
 from django.conf import settings
 from rest_framework.pagination import PageNumberPagination
 
 
+class CheckAuthenticatedView(APIView):
+    def get(self, request, format=None):
+        user = self.request.user
 
+        try:
+            isAuthenticated = user.is_authenticated
+
+            if isAuthenticated:
+                return Response({ 'isAuthenticated': 'success' })
+            else:
+                return Response({ 'isAuthenticated': 'error' })
+        except:
+            return Response({ 'error': 'Something went wrong when checking authentication status' })
 
 class SignupView(generics.GenericAPIView):
     serializer_class = SignupSerializer
@@ -52,6 +65,26 @@ class CustomAuthToken(ObtainAuthToken):
             "email": user.email,
         })
 
+class LogoutView(APIView):
+    def post(self, request, format=None):
+        try:
+            # auth.logout(request)
+            request.auth.delete()
+            return Response({ 'success': 'Loggout Out' })
+        except:
+            return Response({ 'error': 'Something went wrong when logging out' })
+        
+class DeleteAccountView(APIView):
+    def delete(self, request, format=None):
+        user = self.request.user
+
+        try:
+            User.objects.filter(id=user.id).delete()
+
+            return Response({ 'success': 'User deleted successfully' })
+        except:
+            return Response({ 'error': 'Something went wrong when trying to delete user' })
+        
 class CustomPageNumberPagination(PageNumberPagination):
     page_size_query_param = 'PageSize'
 
@@ -59,8 +92,17 @@ class UserListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     # permission_classes = (AllowAny,)
     serializer_class = UserSerializer
-    queryset = User.objects.all().order_by('-date_joined')
     pagination_class = CustomPageNumberPagination
+
+    def get_queryset(self):
+        queryset = User.objects.all().order_by('-date_joined')
+
+        # Filter based on request parameters
+        is_agent = self.request.query_params.get('is_agent', None)
+        if is_agent is not None:
+            queryset = queryset.filter(agent__isnull=not bool(is_agent))
+
+        return queryset
 
 class UserProfileListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
@@ -73,7 +115,6 @@ class UserDetail(generics.RetrieveAPIView):
     # permission_classes = (AllowAny,)
     queryset = User.objects.all()
     serializer_class = UserSerializer2
-
 
 class UserDetailEditView(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated]
@@ -111,6 +152,25 @@ class UserDetailEditView(generics.UpdateAPIView):
         serializer.save()
 
 
+class ChangePasswordView(APIView):
+    # authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        # current_password = request.data.get('current_password')
+        new_password = request.data.get('new_password')
+
+        # Check if the current password is correct
+        # if not user.check_password(current_password):
+        #     return Response({'error': 'Current password is incorrect.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Set the new password and save the user
+        user.set_password(new_password)
+        user.save()
+
+        return Response({'message': 'Password successfully changed.'}, status=status.HTTP_200_OK)
+    
 class RequestPasswordResetEmail(generics.GenericAPIView):
     serializer_class = ResetPasswordEmailRequestSerializer
 

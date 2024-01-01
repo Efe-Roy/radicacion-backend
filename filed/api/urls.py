@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (
     FileDetailView, FileListView, verifyDocCreateView, 
     verifyDocUpdateView, verifyDocDeleteView, AssignAgentView,
-    AssignAgentRetrieveView, FileTypeView, AllFileView,
+    AssignAgentRetrieveView, FileTypeView, AllFileView, ActivityTrackerView,
 
     UnderReview, ReviewView, ObservationView, NotifiedView,
     DocumentView, ActProcedureView, PersonalNotifiedView,
@@ -21,6 +21,7 @@ urlpatterns = [
     path('all-files/', AllFileView.as_view()),
     path('all-very', AllVeryDocView.as_view()),
     path('logger-all', LoggerView.as_view()),
+    path('activity-tracker/', ActivityTrackerView.as_view()),
     
 
     path('file-search/', FileSearchView.as_view(), name='file-list'),

@@ -21,8 +21,8 @@ SECRET_KEY = "django-insecure-a&3+0t=32fxqhxb=p)w)1a5+$te$qc6zt52yt28@5ss9h-t*_!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# ALLOWED_HOSTS = ['159.223.112.223','radicaciondelicencias.com', '127.0.0.1']
-ALLOWED_HOSTS = ['radicaciondelicencias.com']
+ALLOWED_HOSTS = ['159.223.112.223','radicaciondelicencias.com', '127.0.0.1']
+# ALLOWED_HOSTS = ['radicaciondelicencias.com']
 
 
 # Application definition
@@ -47,10 +47,10 @@ INSTALLED_APPS = [
     # API SetUp
     'rest_framework',
     'rest_framework.authtoken',
-    'rest_auth',
+    # 'rest_auth',
     "corsheaders",
 
-    "rest_framework_swagger",
+    # "rest_framework_swagger",
 
 ]
 
@@ -218,6 +218,8 @@ REST_FRAMEWORK = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
     # "http://147.182.132.60",
     "https://licenciasurbanisticas.com"
 ]

@@ -3,6 +3,7 @@ from filed.models import (
     File, Agent, Category, VeriyDoc, FileType, StateType, LoggerAll, operatorObservation
 )
 from account.models import User
+from account.api.serializers import UserSerializer, ListUserProfileSerializer
 
 
 class FileTypeSerializer(serializers.ModelSerializer):
@@ -26,14 +27,19 @@ class OperatorObservationMainSerializer(serializers.ModelSerializer):
         )
 
 class LoggerSerializer(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField()
 
     class Meta:
         model = LoggerAll
         fields = (
             'id',
             'msg',
+            'user',
             'createdAt'
         )
+
+    def get_user(self, obj):
+        return UserSerializer(obj.user).data
 
 class StateTypeSerializer(serializers.ModelSerializer):
 
@@ -80,34 +86,25 @@ class FileSerializer(serializers.ModelSerializer):
     def get_State_type(self, obj):
         return StateTypeSerializer(obj.State_type).data
 
+class AgentSerializer(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField()
 
+    class Meta:
+        model = Agent
+        fields = ('id', 'user')
+
+    def get_user(self, obj):
+        return UserSerializer(obj.user).data
+    
 class AllFileSerializer(serializers.ModelSerializer):
     file_type = serializers.SerializerMethodField()
     State_type = serializers.SerializerMethodField()
+    organisation = serializers.SerializerMethodField()
+    agent = serializers.SerializerMethodField()
 
     class Meta:
         model = File
-        fields = (
-            'id',
-            'file_name',
-            'file_type',
-            'headline',
-            'file_date_added',
-            'passport',
-            'estate_reg',            
-            'agent',
-            'organisation',
-            'phone_number',
-            'email',
-            'value_delineation',
-            'delineation_date',
-            'delineation_payment',
-            'consecutive_delineation',
-            'visited_by',
-            'State_type',
-            'delivery_date',
-            'notification_date',
-        )
+        fields = '__all__'
 
     def get_file_type(self, obj):
         # return FileTypeSerializer(obj.file_type).data
@@ -116,8 +113,15 @@ class AllFileSerializer(serializers.ModelSerializer):
     def get_State_type(self, obj):
         # return StateTypeSerializer(obj.State_type).data
         return StateTypeSerializer(obj.State_type).data["name"]
+    
+    def get_agent(self, obj):
+        return AgentSerializer(obj.agent).data
+    
+    def get_organisation(self, obj):
+        return ListUserProfileSerializer(obj.organisation).data
 
 
+    
 class CompleteSerializer(serializers.ModelSerializer):
 
     class Meta:

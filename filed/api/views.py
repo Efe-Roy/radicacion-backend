@@ -1,10 +1,5 @@
-from django.db.models import Q
 from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404
-from django.shortcuts import render, get_object_or_404
-from datetime import datetime
-import datetime
 from django.core.mail import send_mail
 from .serializers import ( 
     FileSerializer, FileCreateSerializer, AssignAgentSerializer, AllFileSerializer,
@@ -23,23 +18,14 @@ from rest_framework.response import Response
 from rest_framework import status, generics
 from rest_framework.filters import SearchFilter
 from django.core.mail import EmailMessage
-from django.template.loader import render_to_string
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.authentication import TokenAuthentication
 from datetime import timedelta
 from django.db.models import Sum, F, DecimalField, Count
-
-import logging
-# Get an instance of a logger
-logger = logging.getLogger(__name__)
-
+from django.template.loader import render_to_string
 
 class FileNumView(APIView):
-    """
-    List all snippets, or create a new snippet.
-    """
     def get(self, request, format=None):
-        # query last value of file unique number
         get_file = File.objects.all()
         if get_file.exists():
             # print("Has Data")
@@ -93,35 +79,35 @@ class AllVeryDocView(APIView):
     
 class LoggerView(APIView):
     def get(self, request, format=None):
-        newDate = datetime.date.today() + datetime.timedelta(days=4)
-        print("newDate", newDate)
+        # newDate = datetime.date.today() + datetime.timedelta(days=4)
+        # print("newDate", newDate)
 
         loggerFiles = LoggerAll.objects.all().order_by("-id")
         count = LoggerAll.objects.count()
-        print("counte", count)
+        # print("counte", count)
         serializerAllFile = LoggerSerializer(loggerFiles, many=True)
         return Response({
             "data": serializerAllFile.data,
             "count": count
             })
 
-
 class CustomPagination(PageNumberPagination):
     page_size_query_param = 'PageSize'
     # max_page_size = 100
 
+class ActivityTrackerView(generics.ListAPIView):
+    # permission_classes = [IsAuthenticated]
+    permission_classes = (AllowAny,)
+    serializer_class = LoggerSerializer
+    # queryset = User.objects.all()
+    queryset = LoggerAll.objects.all().order_by('-createdAt')
+    pagination_class = CustomPagination
 
 class AllFileView(generics.ListCreateAPIView):
-    # authentication_classes = [TokenAuthentication]
+    # permission_classes = [IsAuthenticated]
     serializer_class = AllFileSerializer
     pagination_class = CustomPagination
 
-    # def get(self, request, format=None):
-        # logger.warning('Homepage was accessed at '+str(datetime.datetime.now())+' hours!')
-        # allFiles = File.objects.all().order_by('-file_name')
-        # serializerAllFile = AllFileSerializer(allFiles, many=True)
-        # return Response(serializerAllFile.data)
-    
     def get_queryset(self):
         queryset = File.objects.all()
 
@@ -158,39 +144,69 @@ class AllFileView(generics.ListCreateAPIView):
         headline = self.request.query_params.get('headline', None)
         if headline:
             queryset = queryset.filter(headline__icontains=headline)
-
-        return queryset
+        
+        agent_assign_status = self.request.query_params.get('agent_assign_status', None)
+        if agent_assign_status is not None:
+            queryset = queryset.filter(agent__isnull=not bool(agent_assign_status))
+ 
+        return queryset.order_by('-file_name')
     
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
-
-        # page = self.paginate_queryset(queryset)
-        # if page is not None:
-        #     serializer = self.get_serializer(page, many=True)
-        #     return self.get_paginated_response(serializer.data)
-
-        # serializer = self.get_serializer(queryset, many=True)
-        # return Response(serializer.data, status=HTTP_200_OK)
     
         State_type_counts = queryset.values('State_type__name').annotate(State_type_count=Count('State_type'))
         file_type_counts = queryset.values('file_type__name').annotate(file_type_count=Count('file_type'))
+        unassigned_count = queryset.filter(agent__isnull=True).count()
+        assigned_count = queryset.filter(agent__isnull=False).count()
+        all_count = queryset.count()
 
+        State_summed_counts = {}
+        file_summed_counts = {}
+
+        for item in State_type_counts:
+            state_type_name = item["State_type__name"]
+            state_type_count = item["State_type_count"]
+
+            if state_type_name not in State_summed_counts:
+                State_summed_counts[state_type_name] = state_type_count
+            else:
+                State_summed_counts[state_type_name] += state_type_count
+
+        for itemData in file_type_counts:
+            file_type_name = itemData["file_type__name"]
+            file_type_count = itemData["file_type_count"]
+
+            if file_type_name not in file_summed_counts:
+                file_summed_counts[file_type_name] = file_type_count
+            else:
+                file_summed_counts[file_type_name] += file_type_count
+
+        result = [{"State_type__name": state_type_name, "State_type_count": count} for state_type_name, count in State_summed_counts.items()]
+        file_result = [{"file_type__name": file_type_name, "file_type_count": count} for file_type_name, count in file_summed_counts.items()]
+
+        # print("State_type_counts", State_type_counts)
         # Paginate the queryset
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             response_data = {
                 'results': serializer.data,
-                'State_type_counts': State_type_counts,
-                'file_type_counts': file_type_counts
+                'State_type_counts': result,
+                'file_type_counts': file_result,
+                'unassigned_count': unassigned_count,
+                'assigned_count': assigned_count,
+                'all_count': all_count
             }
             return self.get_paginated_response(response_data)
 
         serializer = self.get_serializer(queryset, many=True)
         response_data = {
             'results': serializer.data,
-            'State_type_counts': State_type_counts,
-            'file_type_counts': file_type_counts
+            'State_type_counts': result,
+            'file_type_counts': file_result,
+            'unassigned_count': unassigned_count,
+            'assigned_count': assigned_count,
+            'all_count': all_count
         }
         return Response(response_data)
 
@@ -268,9 +284,8 @@ class AssignedFileListView(generics.ListCreateAPIView):
     
 
 class FileListView(APIView):
-    """
-    List all snippets, or create a new snippet.
-    """
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, format=None):
         # allFiles = File.objects.all()
         unassigned_files = File.objects.filter(agent__isnull=True)
@@ -320,20 +335,24 @@ class FileListView(APIView):
         })
 
     def post(self, request, format=None):
-        serializer = FileCreateSerializer(data=request.data)
+        user = self.request.user
+        modified_data = request.data.copy()
+
+        get_file = File.objects.all()
+        if get_file.exists():
+            last_file = File.objects.all().order_by('-id')[0]
+            file_num = int(last_file.file_name) + 1
+            d = "%04d" % ( file_num, )
+            modified_data['file_name'] = d
+        else:
+            file_num = 1
+            d = "%04d" % ( file_num, )
+            modified_data['file_name'] = d
+
+        modified_data['organisation'] = user.userprofile.id
+
+        serializer = FileCreateSerializer(data=modified_data)
         if serializer.is_valid():
-
-            get_file = File.objects.all()
-            if get_file.exists():
-                last_file = File.objects.all().order_by('-id')[0]
-                file_num = int(last_file.file_name) + 1
-                d = "%04d" % ( file_num, )
-                serializer.validated_data['file_name'] = d
-            else:
-                file_num = 1
-                d = "%04d" % ( file_num, )
-                serializer.validated_data['file_name'] = d
-
             serializer.save()
 
             LoggerAll.objects.create(
@@ -341,7 +360,7 @@ class FileListView(APIView):
                 action='create'
             )
             return Response(serializer.data, status= status.HTTP_201_CREATED)
-        return Response(serializer.errors, status= status.status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
 
 class FileNumSearchView(APIView):
     """
@@ -365,6 +384,7 @@ class FileNumSearchView(APIView):
 
 
 class FileDetailView(APIView):
+    authentication_classes = [TokenAuthentication]
     """
     Retrieve, update or delete a snippet instance.
     """
@@ -398,13 +418,15 @@ class FileDetailView(APIView):
 
     def put(self, request, pk, format=None):
         filed = self.get_object(pk)
+        user = self.request.user
         serializer = FileCreateSerializer(filed, data=request.data)
         if serializer.is_valid():
             serializer.save()
 
             LoggerAll.objects.create(
                 msg='Se actualizó un archivo con el número ' + request.data["file_name"],
-                action='update'
+                action='update',
+                user=user
             )
 
             # print("ffff data", request.data['State_type'])
@@ -533,6 +555,7 @@ class AssignAgentRetrieveView(APIView):
         return Response( allAgent.data)
 
 class AssignAgentView(APIView):
+    authentication_classes = [TokenAuthentication]
     def get_object(self, pk):
         try:
             return File.objects.get(id=pk)
@@ -541,6 +564,7 @@ class AssignAgentView(APIView):
         
     def put(self, request, pk, format=None):
         filed = self.get_object(pk)
+        user = self.request.user
         serializer = AssignFileAgentSerializer(filed, data=request.data)
         if serializer.is_valid():
             print("filed Data", request.data)
@@ -551,7 +575,7 @@ class AssignAgentView(APIView):
             LoggerAll.objects.create(
                 msg='Se ha asignado un archivo con este número '+ filed.file_name,
                 action='update',
-
+                user=user
             )
 
             # ====== send email notification ===== #
