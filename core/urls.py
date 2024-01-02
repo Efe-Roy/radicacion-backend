@@ -6,7 +6,7 @@ from rest_framework.schemas import get_schema_view
 from django.views.generic import TemplateView
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    # path('admin/', admin.site.urls),
     # path('', include('account.urls')),
     # path('files/', include('filed.urls', namespace="files")),
     # path('agents/',  include('agents.urls', namespace="agents")),
