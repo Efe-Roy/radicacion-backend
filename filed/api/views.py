@@ -103,6 +103,49 @@ class ActivityTrackerView(generics.ListAPIView):
     queryset = LoggerAll.objects.all().order_by('-createdAt')
     pagination_class = CustomPagination
 
+class DashboardView(APIView):
+    def get(self, request, format=None):
+        queryset = File.objects.all()
+
+        State_type_counts = queryset.values('State_type__name').annotate(State_type_count=Count('State_type'))
+        file_type_counts = queryset.values('file_type__name').annotate(file_type_count=Count('file_type'))
+        unassigned_count = queryset.filter(agent__isnull=True).count()
+        assigned_count = queryset.filter(agent__isnull=False).count()
+        all_count = queryset.count()
+
+        State_summed_counts = {}
+        file_summed_counts = {}
+
+        for item in State_type_counts:
+            state_type_name = item["State_type__name"]
+            state_type_count = item["State_type_count"]
+
+            if state_type_name not in State_summed_counts:
+                State_summed_counts[state_type_name] = state_type_count
+            else:
+                State_summed_counts[state_type_name] += state_type_count
+
+        for itemData in file_type_counts:
+            file_type_name = itemData["file_type__name"]
+            file_type_count = itemData["file_type_count"]
+
+            if file_type_name not in file_summed_counts:
+                file_summed_counts[file_type_name] = file_type_count
+            else:
+                file_summed_counts[file_type_name] += file_type_count
+
+        result = [{"State_type__name": state_type_name, "State_type_count": count} for state_type_name, count in State_summed_counts.items()]
+        file_result = [{"file_type__name": file_type_name, "file_type_count": count} for file_type_name, count in file_summed_counts.items()]
+
+        response_data = {
+            'State_type_counts': result,
+            'file_type_counts': file_result,
+            'unassigned_count': unassigned_count,
+            'assigned_count': assigned_count,
+            'all_count': all_count
+        }
+        return Response(response_data)
+    
 class AllFileView(generics.ListCreateAPIView):
     # permission_classes = [IsAuthenticated]
     serializer_class = AllFileSerializer

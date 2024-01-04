@@ -10,7 +10,7 @@ from .views import (
     TrackDetailView, FileDetailViewII, FileNumView, FileSearchView,
     FileNumSearchView, ResolutionNumView, CompletedStatus, LoggerView,
     AssignedFileListView, UnAssignedFileListView, AllVeryDocView, 
-    ResolutionView2, OperatorObservationView, OfficialLetterIssuedView,
+    ResolutionView2, OperatorObservationView, OfficialLetterIssuedView, DashboardView,
     OperatorObservationPostView, OperatorObservationUpdateView, OperatorObservationGetView
 )
 
@@ -19,6 +19,7 @@ urlpatterns = [
     path('assigned-files/', AssignedFileListView.as_view()),
     path('unassigned-files/', UnAssignedFileListView.as_view()),
     path('all-files/', AllFileView.as_view()),
+    path('dashboard/', DashboardView.as_view()),
     path('all-very', AllVeryDocView.as_view()),
     path('logger-all', LoggerView.as_view()),
     path('activity-tracker/', ActivityTrackerView.as_view()),
