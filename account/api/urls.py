@@ -1,7 +1,7 @@
 from django.urls import path, include
 from .views import (
      CustomAuthToken, SignupView, CheckAuthenticatedView,LogoutView, DeleteAccountView, 
-     UserListView, UserDetail, UserDetailEditView, ChangePasswordView,
+     UserListView, UserDetail, UserDetailEditView, ChangePasswordView, ActivateDeactivateUser,
      RequestPasswordResetEmail, PasswordTokenCheckAPI, SetNewPasswordAPIView, UserProfileListView
 )
 
@@ -12,6 +12,7 @@ urlpatterns = [
     path('logout', LogoutView.as_view()),
     path('delete', DeleteAccountView.as_view()),
     path('change-password/', ChangePasswordView.as_view()),
+    path('activate-deactivate/', ActivateDeactivateUser.as_view()),
 
 #     path('rest-auth/', include('rest_auth.urls')),
     path('userlist/', UserListView.as_view()),

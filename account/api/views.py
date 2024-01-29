@@ -85,6 +85,36 @@ class DeleteAccountView(APIView):
         except:
             return Response({ 'error': 'Something went wrong when trying to delete user' })
         
+class ActivateDeactivateUser(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_user(self, id):
+        try:
+            return User.objects.get(id=id)
+        except User.DoesNotExist:
+            return None
+
+    def post(self, request, *args, **kwargs):
+        id = request.data.get('id')
+        action = request.data.get('action')  # 'activate' or 'deactivate'
+
+        user = self.get_user(id)
+
+        if not user:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        if action == 'activate':
+            user.is_active = True
+        elif action == 'deactivate':
+            user.is_active = False
+        else:
+            return Response({'error': 'Invalid action'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.save()
+
+        return Response({'message': f'User {user.username} successfully {action}d'}, status=status.HTTP_200_OK)
+    
+
 class CustomPageNumberPagination(PageNumberPagination):
     page_size_query_param = 'PageSize'
 

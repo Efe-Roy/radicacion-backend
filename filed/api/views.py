@@ -23,24 +23,38 @@ from rest_framework.authentication import TokenAuthentication
 from datetime import timedelta
 from django.db.models import Sum, F, DecimalField, Count
 from django.template.loader import render_to_string
+from datetime import datetime
 
 class FileNumView(APIView):
     def get(self, request, format=None):
-        get_file = File.objects.all()
-        if get_file.exists():
-            # print("Has Data")
-            # last_file = File.objects.filter(organisation=2).order_by('-id')[0]
-            last_file = File.objects.all().order_by('-id')[0]
-            file_num = int(last_file.file_name) + 1
-            d = "%04d" % ( file_num, )
-            # print(d)
-        else:
-            print("Empty")
-            file_num = 1
-            d = "%04d" % ( file_num, )
-            # print(d)
+        get_num_file = File.objects.all()
+        year = datetime.now().year
 
+        if get_num_file.exists():
+            last_file = File.objects.all().order_by('-id')[0]
+
+            if last_file is not None:
+                string = last_file.file_name
+                # Extract the numeric part from the 'process_num' field
+                year_part = int(string.split('-')[-1])
+                if year_part >= year:
+                    parts = string.split("-")
+                    number = parts[0]
+                    plus_1 = int(number) + 1
+                    count_str = str(plus_1).zfill(3)
+                    d = f'{count_str}-{year}'
+                else:
+                    d = f'001-{year}'
+            else:
+                d = f'001-{year}'
+        else:
+            file_num = 1
+            ed = "%03d" % ( file_num, )
+            d = f'{ed}-{year}'
+            # return d
+        
         return Response(d)
+
     
 class ResolutionNumView(APIView):
 
@@ -152,7 +166,7 @@ class AllFileView(generics.ListCreateAPIView):
     pagination_class = CustomPagination
 
     def get_queryset(self):
-        queryset = File.objects.all()
+        queryset = File.objects.all().order_by('-file_name')
 
         # Filter based on request parameters
         file_name = self.request.query_params.get('file_name', None)
@@ -192,7 +206,7 @@ class AllFileView(generics.ListCreateAPIView):
         if agent_assign_status is not None:
             queryset = queryset.filter(agent__isnull=not bool(agent_assign_status))
  
-        return queryset.order_by('-file_name')
+        return queryset.order_by('-id')
     
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -345,6 +359,8 @@ class FileListView(APIView):
         serializerFile = FileSerializer(queryset, many=True)
         unassignedFile = FileSerializer(unassigned_files, many=True)
 
+        
+
 
         # query last value of file unique number
         get_file = File.objects.all()
@@ -378,20 +394,13 @@ class FileListView(APIView):
         })
 
     def post(self, request, format=None):
+        auto_num = self.generate_automated_number()
+        print("auto_num", auto_num)
+
         user = self.request.user
         modified_data = request.data.copy()
 
-        get_file = File.objects.all()
-        if get_file.exists():
-            last_file = File.objects.all().order_by('-id')[0]
-            file_num = int(last_file.file_name) + 1
-            d = "%04d" % ( file_num, )
-            modified_data['file_name'] = d
-        else:
-            file_num = 1
-            d = "%04d" % ( file_num, )
-            modified_data['file_name'] = d
-
+        modified_data['file_name'] = auto_num
         modified_data['organisation'] = user.userprofile.id
 
         serializer = FileCreateSerializer(data=modified_data)
@@ -404,6 +413,34 @@ class FileListView(APIView):
             )
             return Response(serializer.data, status= status.HTTP_201_CREATED)
         return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
+    
+    def generate_automated_number(cls):
+        get_num_file = File.objects.all()
+        year = datetime.now().year
+
+        if get_num_file.exists():
+            last_file = File.objects.all().order_by('-id')[0]
+
+            if last_file is not None:
+                string = last_file.file_name
+                # Extract the numeric part from the 'process_num' field
+                year_part = int(string.split('-')[-1])
+                if year_part >= year:
+                    parts = string.split("-")
+                    number = parts[0]
+                    plus_1 = int(number) + 1
+                    count_str = str(plus_1).zfill(3)
+                    return f'{count_str}-{year}'
+                else:
+                    return f'001-{year}'
+            else:
+                return f'001-{year}'
+        else:
+            file_num = 1
+            ed = "%03d" % ( file_num, )
+            d = f'{ed}-{year}'
+            return d
+        
 
 class FileNumSearchView(APIView):
     """
