@@ -121,6 +121,13 @@ class DashboardView(APIView):
     def get(self, request, format=None):
         queryset = File.objects.all()
 
+        # user = self.request.user
+        # # queryset = File.objects.filter(agent__isnull=False)
+        # if user.is_organisor:
+        #     queryset = File.objects.all().order_by('-file_name')
+        # else:
+        #     queryset = File.objects.filter(agent__user=user).order_by('-file_name')
+
         State_type_counts = queryset.values('State_type__name').annotate(State_type_count=Count('State_type'))
         file_type_counts = queryset.values('file_type__name').annotate(file_type_count=Count('file_type'))
         unassigned_count = queryset.filter(agent__isnull=True).count()
@@ -166,7 +173,14 @@ class AllFileView(generics.ListCreateAPIView):
     pagination_class = CustomPagination
 
     def get_queryset(self):
-        queryset = File.objects.all().order_by('-file_name')
+        # queryset = File.objects.all().order_by('-file_name')
+
+        user = self.request.user
+        # queryset = File.objects.filter(agent__isnull=False)
+        if user.is_organisor:
+            queryset = File.objects.all().order_by('-file_name')
+        else:
+            queryset = File.objects.filter(agent__user=user).order_by('-file_name')
 
         # Filter based on request parameters
         file_name = self.request.query_params.get('file_name', None)
