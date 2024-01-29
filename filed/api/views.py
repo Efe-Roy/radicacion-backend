@@ -177,7 +177,7 @@ class AllFileView(generics.ListCreateAPIView):
 
         user = self.request.user
         # queryset = File.objects.filter(agent__isnull=False)
-        if user.is_organisor:
+        if user.is_support or user.is_organisor:
             queryset = File.objects.all().order_by('-file_name')
         else:
             queryset = File.objects.filter(agent__user=user).order_by('-file_name')
